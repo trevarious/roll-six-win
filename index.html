@@ -1,0 +1,1253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Roll Six Win</title>
+<style>
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100vh;
+  background-color: #004d00;
+  color: #fff;
+}
+.board-text {
+  text-align: center;
+  font-weight: 700;
+  font-family: 'Times New Roman', Times, serif;
+  color: rgb(134, 214, 138);
+  background-color: rgba(0, 0, 0, 0.1);
+  border-radius: 5px;
+  box-shadow: inset 2px 2px 5px rgba(0, 0, 0, 0.327), 2px 2px 1px 1px rgba(0, 0, 0, 0.37);
+  padding: 5px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  flex-shrink: 0; /* Prevent shrinking */
+  cursor: default;
+}
+
+nav {
+  width: 100vw;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.board-container {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-top: 50px;
+  border: 5px solid black;
+  width: auto;
+  height: auto;
+}
+
+.betting-board {
+  width: 200px;
+  height: 200px;
+  border: 1px solid black;
+  border-radius: none;
+  margin: 5px;
+  padding: 30px;
+  position: relative;
+  background-color: #006400;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  transition: box-shadow 0.3s;
+  text-align: center;
+  font-size: 1.5em;
+  cursor: default;
+}
+
+.betting-board:hover {
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5);
+}
+.chip {
+  position: relative;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background-color: #0b4b45; /* Dark teal background */
+  border: 4px solid rgba(255, 255, 255, 0.6); /* Light border */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 18px; /* Larger font size */
+  color: #fff;
+  text-align: center;
+  cursor: pointer; /* Reverting to pointer cursor */
+  transition: transform 0.2s ease-in-out;
+}
+
+.chip:hover {
+  transform: scale(1.1); /* Slightly increase size on hover */
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+}
+.chip.disabled {
+  opacity: 0.1; /* Example: reduce opacity for disabled chips */
+  pointer-events: none; /* Prevent interactions with disabled chips */
+  /* Add any additional styling for disabled chips */
+}
+
+
+.chip .center-circle {
+  width: 30px;
+  height: 30px;
+  background-color: #fff; /* White center circle */
+  border-radius: 50%;
+  border: 3px solid rgba(0, 183, 183, 0.356); /* Teal border */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #0b4b45; /* Dark teal text color */
+  font-weight: bold;
+  font-size: 24px;
+  position: relative;
+  z-index: 2;
+}
+
+.chip .center-circle.value {
+  position: absolute;
+  display: none;
+}
+
+.chip:hover .center-circle.value {
+  display: flex;
+  font-size: 17px;
+}
+
+.chip .crypto-symbol {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.red, .black {
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.red::before, .black::before {
+  content: attr(data-value);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+}
+
+.red::before {
+  background-color: rgb(255, 0, 0);
+}
+
+.black::before {
+  background-color: rgb(0, 0, 0);
+}
+
+#chips {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.active {
+  display: block !important;
+}
+#account-button,
+#deposit-button {
+  display: none;
+}
+
+.nav-button {
+  background: linear-gradient(135deg, #0c6b0c, #009900);
+  color: white;
+  font-weight: 700;
+  border: none;
+  border-radius: 5px;
+  padding: 10px 20px;
+  font-family: 'Times New Roman', Times, serif;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+  cursor: pointer;
+  
+
+}
+.nav-button:hover {
+  animation: pulse-two .93s;
+}
+
+#place-bet-button {
+  position: absolute;
+  right: 15px;
+  bottom: 30px;
+}
+#wallet-status-container {
+  width: 119px;
+  height: 25px;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  max-width: 600px;
+  background-color: rgba(0, 0, 0, 0.2);
+  margin-left: 15px;
+}
+#wallet-status-container:hover {
+  width: auto;
+}
+#stats-container {
+  padding-top: 15px;
+  padding-right: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap; /* Enable wrapping */
+  gap: 20px; /* Space between balance and round */
+}
+
+.stat-item {
+  text-align: center;
+  min-width: 100px; /* Adjust width to ensure proper wrapping */
+  flex: 1; /* Ensure items take available space */
+}
+.stat-item:last-child {
+  display: flex; /* Make the last item a flex container */
+  flex-direction: column; /* Stack items vertically */
+  justify-content: center; /* Center items vertically */
+  align-items: center; /* Center items horizontally */
+  text-align: center; /* Center text inside */
+  flex-basis: 100%; /* Force the last item to take a new row */
+}
+
+
+.stat-item p {
+  margin: 0;
+  margin-top: 15px;
+}
+
+.board-value {
+  height: 15px;
+  padding: 15px;
+  font-weight: 700;
+  color: rgb(255, 255, 0);
+  font-family: monospace;
+  font-size: 1rem;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+  background-color: rgba(0, 0, 0, 0.1);
+  border-radius: 5px;
+  box-shadow: inset 2px 2px 5px rgba(0, 0, 0, 0.327), 2px 2px 1px 1px rgba(0, 0, 0, 0.37);
+
+}
+
+
+.broke {
+  animation: pulse 1.9s infinite linear;
+  animation-fill-mode: forwards;
+}
+#log-status-indicator {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: linear-gradient(145deg, #ff5f5f, #d9534f);
+  color: white;
+  font-size: 20px;
+  margin-right: 5px;
+}
+.logged-in {
+  background: linear-gradient(145deg, #b8ff80, #98e664) !important;
+}
+
+/* Adding a smooth shadow effect for a more professional feel */
+#log-status-indicator::after {
+  border-radius: 50%;
+  box-shadow: inset 2px 2px 4px rgba(0, 0, 0, 0.2), inset -2px -2px 4px rgba(255, 255, 255, 0.2);
+  transition: box-shadow 0.45s ease;
+}
+
+#wallet-address {
+  font-size: 12px;
+  letter-spacing: 2px;
+  color: #ffffffb7;
+  font-family: Arial, sans-serif;
+  text-align: left;
+  cursor: default;
+  overflow: hidden;
+  white-space: nowrap;
+}
+#connect-wallet-button:hover {
+animation: pulse-two .93s;
+}
+#account {
+  width: 150px;
+  margin-left: 15px;
+}
+@keyframes increase {
+  0% {
+    color: rgb(255, 255, 0);
+  }
+  25% {
+    color: rgb(100, 255, 0);
+    text-shadow: 10px 10px 20px rgba(100, 255, 0, .15);
+  }
+  50% {
+    color: rgb(0, 255, 0);
+    text-shadow: 10px 10px 20px rgba(100, 255, 0, .1);
+  }
+  75% {
+    color: rgb(100, 255, 0);
+    text-shadow: 10px 10px 20px rgba(100, 255, 0, .05);
+  }
+  100% {
+    color: rgb(255, 255, 0);
+  }
+}
+@keyframes decrease {
+  0% {
+    color: rgb(255, 255, 0);
+  }
+  25% {
+    color: rgb(255, 100, 0);
+    text-shadow: 10px 10px 20px rgba(238, 255, 0, 0.15);
+  }
+  50% {
+    color: rgb(255, 0, 0);
+    text-shadow: 10px 10px 20px rgba(229, 255, 0, 0.1);
+  }
+  75% {
+    color: rgb(255, 100, 0);
+    text-shadow: 10px 10px 20px rgba(234, 255, 0, 0.05);
+  }
+  100% {
+    color: rgb(255, 255, 0);
+  }
+}
+@keyframes pulse {
+  0% {
+    /* transform: scale(1); */
+    box-shadow: 0 0 0 0 rgba(254, 93, 82, 0.7);
+  }
+  50% {
+    /* transform: scale(1.05); */
+    box-shadow: 0 0 0 10px rgba(255, 184, 184, 0);
+  }
+  100% {
+    /* transform: scale(1); */
+    box-shadow: 0 0 0 0 rgba(0, 0, 0, 0);
+  }
+}
+@keyframes pulse-two {
+  0% {
+    /* transform: scale(1); */
+    box-shadow: 0 0 0 0 rgba(82, 254, 82, 0.2);
+  }
+  50% {
+    /* transform: scale(1.05); */
+    box-shadow: 0 0 0 8px rgba(255, 184, 184, 0);
+  }
+  100% {
+    /* transform: scale(1); */
+    box-shadow: 0 0 0 0 rgba(0, 0, 0, 0);
+  }
+}
+.pulse-class {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  animation: pulse 1s linear;
+  animation-fill-mode: forwards;
+}
+.pulse-two-class {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  animation: pulse-two 1s linear;
+  animation-fill-mode: forwards;
+}
+
+.hidden {
+  display: none;
+}
+
+#lossParticles {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  z-index: 1000;
+}
+
+#loseMessage {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 1.5rem;
+  color: red;
+  font-weight: bold;
+  opacity: 0;
+  transition: font-size 2s, opacity 2s;
+  z-index: 1;
+}
+
+#loseMessage.show {
+  opacity: 1;
+  font-size: 3rem;
+}
+#winMessage {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 1.5rem;
+  color: rgb(26, 255, 0);
+  font-weight: bold;
+  opacity: 0;
+  transition: font-size 2s, opacity 2s;
+  z-index: 1;
+}
+
+#winMessage.show {
+  opacity: 1;
+  font-size: 3rem;
+}
+.fade-in-out {
+    transition: opacity 0.15s ease-in, transform 0.15s ease, font-size 0.15s ease, color .15s ease;
+  }
+
+  .fade-in-out.hidden2 {
+    opacity: .75;
+    font-size: .93rem !important;
+  }
+  .fade-in-out.increase {
+    animation: increase 0.25s linear;
+    color: rgb(255, 255, 0);
+    animation-fill-mode: forwards;
+  }
+  .fade-in-out.decrease {
+    animation: decrease 0.25s linear;
+    color: rgb(255, 255, 0);
+    animation-fill-mode: forwards;
+  }
+
+  .fade-in-out.hidden3 {
+    opacity: .75;
+    font-size: .93rem !important;
+  }
+
+  .lights {
+  display: flex;
+  margin-top: 5px;
+}
+
+.lights .light {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: #333; /* Default light off color */
+  margin: 0 5px;
+}
+
+.lights .light.on {
+  background-color: yellow; /* Light on color */
+}
+
+</style>
+</head>
+<body>
+  <div id="lossParticles" class="hidden"></div>
+  <h1 id="loseMessage"></h1>
+  <h1 id="winMessage"></h1>
+
+  <header>
+    <nav>
+      <div id="account-container">
+        <p id="account" class="board-text">ACCOUNT</p>
+        <div id="wallet-status-container">
+        <div id="log-status-indicator"></div>
+        <div id="wallet-address">Disconnected</div>
+        </div>
+      </div>
+    <button class="nav-button" id="account-button" disabled>Create Account</button>
+    <button class="nav-button" id="connect-wallet-button">Connect Wallet</button>
+    <div id="winsDisplay">
+      <div>
+        Bet Type 1:
+        <div id="betType1" class="lights">
+          <div class="light"></div>
+          <div class="light"></div>
+          <div class="light"></div>
+          <div class="light"></div>
+          <div class="light"></div>
+          <div class="light"></div>
+        </div>
+      </div>
+      <div>
+        Bet Type 2:
+        <div id="betType2" class="lights">
+          <div class="light"></div>
+          <div class="light"></div>
+          <div class="light"></div>
+          <div class="light"></div>
+          <div class="light"></div>
+          <div class="light"></div>
+        </div>
+      </div>
+      <div>
+        Bet Type 3:
+        <div id="betType3" class="lights">
+          <div class="light"></div>
+          <div class="light"></div>
+          <div class="light"></div>
+          <div class="light"></div>
+          <div class="light"></div>
+          <div class="light"></div>
+        </div>
+      </div>
+    </div>
+    
+    <div id="stats-container">
+      <div class="stat-item">
+        <p class="board-text">TOTAL BET</p>
+        <div class="board-value fade-in-out"" id="totalBetAmount"></div>
+      </div>
+      <div class="stat-item">
+        <p class="board-text">ROUND</p>
+        <p class="board-value" id="round"></p>
+      </div>
+      <div class="stat-item">
+        <p class="board-text">BALANCE</p>
+        <p class="board-value fade-in-out" id="balance"></p>
+      </div>
+      <div class="stat-item">
+        <button class="nav-button" id="deposit-button">Deposit</button>
+      </div>
+<div id="totalPL"></div>
+    </div>
+    </nav>
+  </header>
+  <div id="consecutive-win-container">
+    <div id="number" class="consecutive-win"></div>
+    <div id="parity" class="consecutive-win"></div>
+    <div id="color" class="consecutive-win"></div>
+  </div>
+<div class="board-container">
+  <div id="odd-board" class="betting-board" data-value="7">Odd</div>
+  <div id="even-board" class="betting-board" data-value="8">Even</div>
+  <div id="one-board" class="betting-board numbered-board" data-value="1"></div>
+  <div id="two-board" class="betting-board numbered-board" data-value="2"></div>
+  <div id="three-board" class="betting-board numbered-board" data-value="3"></div>
+  <div id="four-board" class="betting-board numbered-board" data-value="4"></div>
+  <div id="five-board" class="betting-board numbered-board" data-value="5"></div>
+  <div id="six-board" class="betting-board numbered-board" data-value="6"></div>
+  <div id="red-board" class="betting-board" data-value="9">Red</div>
+  <div id="black-board" class="betting-board" data-value="10">Black</div>
+</div>
+<div id="chips" class="chips-container">
+</div>
+<button class="nav-button" id="place-bet-button">Place Bet</button>
+<script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/web3@1.6.0/dist/web3.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+
+<script type="module">
+
+import { contractABI } from './abi.js';
+import { contractAddress } from './address.js'; 
+
+let web3;
+let contract;
+let userAccount;
+let accountCreated = false;
+
+
+const createAccountButton = document.getElementById("account-button");
+const depositButton = document.getElementById("deposit-button");
+const connectWalletButton = document.getElementById("connect-wallet-button");
+const playButton = document.getElementById("place-bet-button");
+const accountContainer = document.getElementById('wallet-status-container');
+const accountConnectionIndicator = document.getElementById("log-status-indicator");
+const accountAddress = document.getElementById('wallet-address');
+const balance = document.getElementById("balance");
+const round = document.getElementById("round");
+const numberWins = document.getElementById("number");
+const parityWins = document.getElementById("parity");
+const colorWins = document.getElementById("color");
+
+const initialize = async () => {
+  if (window.ethereum) {
+    try {
+      const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
+      userAccount = accounts[0];
+      web3 = new Web3(window.ethereum);
+      contract = new web3.eth.Contract(contractABI, contractAddress);
+      connectWalletButton.disabled = true;
+      const timestamp = new Date().toLocaleString();
+      console.log(`Log in successful at ${timestamp}`);
+      accountConnectionIndicator.classList.add('logged-in');
+      checkAccountStatus();
+      applyColorMapping();
+      generateChips();
+      let totalBetAmount = calculateTotalBetAmount();
+      displayTotalBetAmount(totalBetAmount);
+      updateConsecutiveWins();
+    } catch (error) {
+      console.log(error);
+      alert("There was an error connecting wallet");
+    }
+  } else {
+    console.log("Failed to make request");
+    alert("Failed to make request");
+  }
+};
+const updateConsecutiveWins = async () => {
+    try {
+        // Call the getConsecutiveWins function from your contract
+        const result = await contract.methods.getConsecutiveWins().call();
+
+        // Update the UI based on the result
+        console.log(result[0]);
+        console.log(result[1]);
+        console.log(result[2]);
+        updateLights('betType1', result[0]);
+        updateLights('betType2', result[1]);
+        updateLights('betType3', result[2]);
+
+    } catch (error) {
+        console.error('Error fetching consecutive wins:', error);
+    }
+}
+
+function updateLights(elementId, value) {
+    const lightsContainer = document.getElementById(elementId);
+    const lights = lightsContainer.querySelectorAll('.light');
+
+    // Turn on lights based on the number of wins (value)
+    for (let i = 0; i < value && i < 6; i++) {
+        lights[i].classList.add('on');
+    }
+}
+
+
+const generateChips = async () => {
+  const chipsContainer = document.getElementById('chips');
+  const chipValues = [0.1, 0.25, 0.5, 1]; // Define your chip values
+
+  try {
+    const balanceValue = await contract.methods.getBalance().call({ from: userAccount });
+    const balanceInMatic = web3.utils.fromWei(balanceValue);
+
+    chipValues.forEach(value => {
+      const chip = document.createElement('div');
+      chip.className = 'chip';
+      chip.setAttribute('draggable', 'true');
+      chip.setAttribute('data-value', value);
+
+      chip.innerHTML = `
+        <div class="center-circle">\u20BF</div>
+        <div class="center-circle value">${value}</div>
+        <div class="crypto-symbol"></div>
+      `;
+
+      // Assign colors based on chip value
+      switch (value) {
+        case 0.1:
+          chip.style.backgroundColor = '#FF6961'; // Red color
+          break;
+        case 0.25:
+          chip.style.backgroundColor = '#00BFFF'; // Blue color
+          break;
+        case 0.5:
+          chip.style.backgroundColor = '#32CD32'; // Green color
+          break;
+        case 1:
+          chip.style.backgroundColor = '#BA55D3'; // Purple color
+          break;
+        default:
+          chip.style.backgroundColor = '#0b4b45'; // Default teal color for others
+          break;
+      }
+
+      chip.addEventListener('dragstart', dragStart);
+      chip.addEventListener('dragend', dragEnd);
+
+      // Check if chip should be disabled
+      if (balanceInMatic < value) {
+        chip.classList.add('disabled');
+        chip.removeAttribute('draggable');
+      }
+
+      chipsContainer.appendChild(chip);
+    });
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+const updateStats = async () => {
+  try {
+    const balanceValue = await contract.methods.getBalance().call({ from: userAccount });
+    const balanceInMatic = web3.utils.fromWei(balanceValue);
+    const roundValue = await contract.methods.getCurrentRound().call({ from: userAccount });
+    let sliceAmount = balanceInMatic > 0 && balanceInMatic < 10 ? 4 : balanceInMatic < 100 ? 5 : balanceInMatic < 1000 ? 6 : balanceInMatic < 10000 ? 7 : 0; 
+    balance.textContent = balanceInMatic.slice(0, sliceAmount);
+    removeExistingChips();
+    generateChips(parseFloat(balanceInMatic));
+    if (balanceInMatic < 1) {
+      depositButton.classList.add('broke');
+    } else {
+      depositButton.classList.remove('broke');
+    }
+    round.textContent = roundValue;
+  } catch (error) {
+    console.log("error updating stats " + error);
+  }
+};
+
+
+const checkAccountStatus = async () => {
+  try {
+    const isAccountCreated = await contract.methods.getAccountStatus(userAccount).call({ from: userAccount });
+    if(isAccountCreated) {
+      const balanceValue = await contract.methods.getBalance().call({from: userAccount});
+      const balanceInMatic = web3.utils.fromWei(balanceValue);
+      const roundValue = await contract.methods.getCurrentRound().call({from: userAccount});
+      depositButton.classList.add('active');
+      createAccountButton.style.display = 'none';
+      connectWalletButton.style.display = 'none';
+      let sliceAmount = balanceInMatic > 0 && balanceInMatic < 10 ? 4 : balanceInMatic < 100 ? 5 : balanceInMatic < 1000 ? 6 : balanceInMatic < 10000 ? 7 : 0; 
+      balance.textContent = balanceInMatic.slice(0, sliceAmount);
+      if(balanceInMatic < 1) {
+        depositButton.classList.add('broke');
+      }
+      round.textContent = roundValue;
+      accountAddress.innerHTML = `<p>Connected!</p>`;
+      setTimeout(() => {
+        accountAddress.innerHTML = `<p>0x...${userAccount.slice(-5)}</p>`;
+      }, 1500);
+      console.log("Welcome back!");
+    } else {
+      createAccountButton.disabled = false;
+      createAccountButton.classList.add('active');
+      connectWalletButton.classList.add('hidden');
+      console.log("Please create an account to play!");
+    }
+  } catch (error) {
+    console.log(error);
+  }
+}
+connectWalletButton.addEventListener("click", initialize);
+      // Function to increase total bet when a chip is placed and decrease balance. Place function in drop event.
+      const increaseAnimation = () => {
+        const totalBetAmount = document.getElementById('totalBetAmount');
+        const balance = document.getElementById('balance'); // Assuming 'balance' is the ID of your balance display element
+        totalBetAmount.classList.add('increase');
+        balance.classList.add('decrease');
+          setTimeout(() => {
+            totalBetAmount.classList.remove('increase');
+            balance.classList.remove('decrease');
+          }, 250)
+      }
+            // Function to increase total bet when a chip is placed and decrease balance. Place function in drop event.
+            const decreaseAnimation = () => {
+        const totalBetAmount = document.getElementById('totalBetAmount');
+        const balance = document.getElementById('balance'); // Assuming 'balance' is the ID of your balance display element
+        totalBetAmount.classList.add('decrease');
+        balance.classList.add('increase');
+          setTimeout(() => {
+            totalBetAmount.classList.remove('decrease');
+            balance.classList.remove('increase');
+          }, 250)
+      }
+
+const createAccount = async () => {
+      try {
+        await contract.methods.createAccount().send({ from: userAccount });
+        console.log("Account created successfully.");
+        updateStats();
+      } catch (error) {
+        console.log("Error creating your account. " + error);
+      }
+    };
+createAccountButton.addEventListener("click", createAccount);
+
+const deposit = async () => {
+  try {
+    const amount = prompt("Please enter an amount in MATIC");
+    if (amount && !isNaN(amount) && parseFloat(amount) > 0) {
+      const amountInWei = web3.utils.toWei(amount, "ether");
+      const receipt = await contract.methods.deposit().send({ from: userAccount, value: amountInWei });
+      console.log("Successfully deposited " + amount + " MATIC");
+      alert("Successfully deposited " + amount + " MATIC");
+      updateStats(); // Update stats and regenerate chips
+      receipt.events.DepositComplete ? 
+        console.log("Event: ", receipt.events.DepositComplete.returnValues) :
+        console.log("Event not found in receipt");
+    } else {
+      console.log("Please enter a valid amount");
+      alert("Please enter a valid amount");
+    }
+  } catch (error) {
+    console.log("Could not make deposit request: " + error);
+    alert("Could not make deposit request: " + error);
+  }
+};
+
+depositButton.addEventListener("click", deposit);
+
+accountContainer.addEventListener("mouseenter", () => {
+  if (userAccount) {
+    accountAddress.innerHTML = `<p>${userAccount}</p>`;
+  }
+});
+accountContainer.addEventListener("mouseleave", () => {
+  if (userAccount) {
+    accountAddress.innerHTML = `<p>0x...${userAccount.slice(-5)}</p>`;
+  }
+});
+
+const bets = [];
+
+const play = async () => {
+  let totalBetAmounts = calculateTotalBetAmount();
+  let totalProfitForRound = 0;
+  console.log("Total bet amounts " + totalBetAmounts);
+  let netProfitForRound = 0;
+  console.log("Placing bets...");
+  if (!web3 || !userAccount || !contract) {
+    console.error("Web3, user account, or contract not initialized.");
+    alert("Please connect your wallet first.");
+    return;
+  }
+  if (bets.length === 0) {
+    console.error("No bets to place.");
+    alert("Please add bets before submitting.");
+    return;
+  }
+  try {
+    console.log("Sending bet transaction...");
+    const receipt = await contract.methods.play(bets).send({ from: userAccount });
+    console.log("Bets placed successfully");
+    alert("Bets placed successfully!");
+    console.log(receipt);
+    let result;
+    if (receipt.events && receipt.events.Result) {
+      if (bets.length == 1) {
+        const returns = receipt.events.Result.returnValues;
+        console.log(`Winning number: ${returns[3]}`);
+        alert(`Winning number: ${returns[3]}`);
+        result = returns[4];
+        if (receipt.events.FeeDistributed) {
+          const feeEvent = receipt.events.FeeDistributed.returnValues;
+          const unixTimestamp = parseInt(feeEvent[1]) * 1000;
+          const date = new Date(unixTimestamp);
+          const formattedDate = date.toLocaleString();
+          const amountInMatic = web3.utils.fromWei(feeEvent[0]);
+          alert(`Fee distributed at ${formattedDate} for amount of ${amountInMatic} MATIC`);
+        }
+      } else if(bets.length > 1) {
+        for(let i = 0; i < 1; i ++){
+            alert(`Winning number: ${receipt.events.Result[0].returnValues[3]}`);
+        }
+        receipt.events.Result.forEach((event) => {
+          const returns = event.returnValues;
+          console.log("Non parsed returns[3]: " + returns[5]);
+          console.log("Parsed returns[3]: " + returns[50]);
+          totalProfitForRound += parseFloat(web3.utils.fromWei(returns[5]));
+          console.log("Total profit per round " + totalProfitForRound)
+          if (receipt.events.FeeDistributed) {
+            const feeEvent = receipt.events.FeeDistributed.find((feeEvent) => feeEvent.blockNumber === event.blockNumber);
+            if (feeEvent) {
+              const returns = feeEvent.returnValues;
+              const unixTimestamp = parseInt(returns[1]) * 1000;
+              const date = new Date(unixTimestamp);
+              const formattedDate = date.toLocaleString();
+              const amountInMatic = web3.utils.fromWei(returns[0]);
+            }
+          }
+        });
+        let totalBetAmountsInMatic = web3.utils.fromWei(totalBetAmounts.toString());
+        if(totalBetAmountsInMatic > totalProfitForRound) {
+          console.log("Total bet amounts after bet submittion for loss: " + totalBetAmountsInMatic);
+          console.log("Total profit  after bet submittion for loss: " + totalProfitForRound);
+          netProfitForRound = totalBetAmountsInMatic - totalProfitForRound;
+          triggerLossParticles(netProfitForRound);
+        } else if (totalBetAmountsInMatic < totalProfitForRound) {
+          netProfitForRound = totalProfitForRound - totalBetAmountsInMatic;
+          triggerConfetti(netProfitForRound);
+          console.log("Total bet amounts after bet submittion for win: " + totalBetAmountsInMatic);
+          console.log("Total profit  after bet submittion for win: " + totalProfitForRound);
+        } else {
+          alert("Break Even");
+        }
+      }
+    } else {
+      console.log("No Result event found in the receipt.");
+      alert("No Result event found in the receipt.");
+    }
+    const boards = document.querySelectorAll('.betting-board');
+    boards.forEach(board => {
+      const chips = board.querySelectorAll('.placed');
+      chips.forEach(chip => chip.remove());
+    });
+    // if (result == true) {
+    //       triggerConfetti();
+    //     } else {
+    //       triggerLossParticles();
+    //     }
+    bets.length = 0;
+    updateStats();
+    applyColorMapping();
+    let totalBetAmount = calculateTotalBetAmount();
+    let totalBetAmountInMatic = web3.utils.fromWei(totalBetAmount.toString());
+    displayTotalBetAmount(totalBetAmountInMatic);
+  } catch (error) {
+    console.error("Error placing bets:", error);
+    alert("Error placing bets: " + error.message);
+    // Remove chips from the DOM
+    const boards = document.querySelectorAll('.betting-board');
+    boards.forEach(board => {
+      const chips = board.querySelectorAll('.placed');
+      chips.forEach(chip => chip.remove());
+    });
+    bets.length = 0;
+    updateStats();
+    setTimeout(() => {
+      totalBetAmount.textContent = 0;
+    }, 150);
+  }
+};
+
+playButton.addEventListener("click", play);
+
+const chips = document.querySelectorAll('.chip');
+chips.forEach(chip => {
+  chip.addEventListener('dragstart', dragStart);
+  chip.addEventListener('dragend', dragEnd);
+});
+function dragStart() {
+  this.classList.add('dragging');
+  event.target.style.scale = .85;
+}
+function dragEnd() {
+  this.classList.remove('dragging');
+  event.target.style.scale = 1;
+}
+
+const removeChip = (chip, value, boardValue) => {
+  chip.remove();
+  decreaseAnimation();
+  const valueInWei = web3.utils.toWei(value.toString(), 'ether');
+  const guess = parseInt(boardValue <= 6 ? boardValue : boardValue == 7 ? 1 : boardValue == 8 ? 2 : boardValue == 9 ? 1 : 2);
+
+  const index = bets.findIndex(bet => bet.amount === valueInWei && bet.guess === guess);
+  if (index !== -1) {
+    bets.splice(index, 1);
+    console.log(`$${value} removed from ${boardValue}`);
+    console.log(`Number of remaining bets: ${bets.length}`);
+    if(bets.length > 1) {
+      bets.forEach(bet => console.log(bet));
+    } else if (bets.length == 1) {
+      console.log(bets);
+    }
+
+    let totalBetAmount = calculateTotalBetAmount();
+    displayTotalBetAmount(totalBetAmount);
+
+    // Re-enable chips if balance allows
+    const remainingBalance = parseFloat(balance.textContent);
+    document.querySelectorAll('.chip.disabled').forEach(chip => {
+      const chipValue = parseFloat(chip.getAttribute('data-value'));
+      if (chipValue <= remainingBalance) {
+        chip.classList.remove('disabled');
+      }
+    });
+
+  } else {
+    console.log(`No matching bet found for removal: ${valueInWei}, ${guess}`);
+  }
+};
+const removeExistingChips = () => {
+  const chipsContainer = document.getElementById('chips');
+  while (chipsContainer.firstChild) {
+    chipsContainer.removeChild(chipsContainer.firstChild);
+  }
+};
+
+const boards = document.querySelectorAll('.betting-board');
+boards.forEach(board => {
+  board.addEventListener('dragover', dragOver);
+  board.addEventListener('dragenter', dragEnter);
+  board.addEventListener('dragleave', dragLeave);
+  board.addEventListener('drop', dragDrop);
+});
+function dragOver(e) {
+  e.preventDefault();
+}
+function dragEnter(e) {
+  e.preventDefault();
+  this.classList.add('hovered');
+}
+function dragLeave() {
+  this.classList.remove('hovered');
+}
+function dragDrop(e) {
+  e.preventDefault();
+  this.classList.remove('hovered');
+
+  const chip = document.querySelector('.dragging');
+  if (chip) {
+    const boardValue = parseInt(this.getAttribute('data-value'));
+    const chipValue = parseFloat(chip.getAttribute('data-value'));
+
+    // Calculate absolute position for new chip
+    const rect = this.getBoundingClientRect(); // Get position of the target element
+    const offsetX = e.clientX - rect.left; // Calculate X position relative to target
+    const offsetY = e.clientY - rect.top;  // Calculate Y position relative to target
+
+    // Check if dropping this chip will exceed the current balance
+    const remainingBalance = parseFloat(balance.textContent);
+    if (chipValue > remainingBalance) {
+      console.log(`Chip value ${chipValue} exceeds remaining balance ${remainingBalance}. Disabling chip.`);
+      chip.classList.add('disabled');
+
+      // Store the chip value when disabling it
+      chip.dataset.disabledValue = chipValue;
+
+      return; // Exit early if chip value exceeds balance
+    }
+
+    // Continue with normal drop functionality
+    // Remove the disabled state if it was previously disabled
+    if (chip.classList.contains('disabled')) {
+      chip.classList.remove('disabled');
+    }
+
+
+    // Create a new chip element and configure its properties
+    const newChip = chip.cloneNode(true);
+    newChip.classList.remove('dragging');
+    newChip.classList.add('placed');
+    newChip.style.position = 'absolute';
+    newChip.style.top = `${offsetY}px`;
+    newChip.style.left = `${offsetX}px`;
+
+    // Remove draggable attribute and add click event listener to remove the chip
+    newChip.removeAttribute('draggable');
+    newChip.addEventListener('click', () => {
+      removeChip(newChip, chipValue, boardValue);
+    });
+
+    // Append the chip to the drop target (this)
+    this.appendChild(newChip);
+
+    // Add bet information to your bets array
+    let betType = boardValue < 7 ? 0 : boardValue < 9 ? 1 : 2;
+    const colorBet = this.classList.contains('black') ? 2 : 1;
+    let valueInWei = web3.utils.toWei(chipValue.toString(), 'ether');
+    let stringWei = valueInWei.toString();
+    const newBetObj = {
+      amount: stringWei,
+      betType,
+      guess: boardValue <= 6 ? boardValue : boardValue === 7 ? 1 : boardValue === 8 ? 2 : boardValue === 9 ? 1 : 2
+    };
+    bets.push(newBetObj);
+    console.log(`${stringWei} matic placed on ${boardValue <= 6 ? boardValue : boardValue === 7 ? 'odd' : boardValue === 8 ? 'even' : boardValue === 9 ? 'red' : 'black'} with bet type ${betType == 0 ? 'number' : betType == 1 ? 'parity' : 'color'}`);
+
+    // Calculate and display total bet amount
+    let totalBetAmount = calculateTotalBetAmount();
+    displayTotalBetAmount(totalBetAmount);
+    increaseAnimation();
+
+    // Log the number of bets for debugging purposes
+    console.log(`Number of bets: ${bets.length}`);
+  }
+}
+
+
+
+const calculateTotalBetAmount = () => {
+  return bets.reduce((total, bet) => total.add(web3.utils.toBN(bet.amount)), web3.utils.toBN('0'));
+};
+
+const updateBalanceWhileBetting = async () => {
+  try {
+    const balanceValue = await contract.methods.getBalance().call({ from: userAccount });
+    const balanceValueInMatic = web3.utils.fromWei(balanceValue);
+    return parseFloat(balanceValueInMatic); // Convert to a float for numerical operations
+  } catch (error) {
+    console.error("Error updating balance:", error);
+    return null; // Handle error gracefully, perhaps return a default value
+  }
+};
+
+const displayTotalBetAmount = async (totalBetAmount) => {
+  try {
+    let currentBalance = await updateBalanceWhileBetting();
+    let betAmountInMatic = web3.utils.fromWei(totalBetAmount);
+    if (currentBalance !== null) {
+      let remainingBalance = currentBalance - betAmountInMatic; // Ensure totalBetAmount is parsed as float
+      const balanceElement = document.getElementById('balance'); // Assuming 'balance' is the ID of your balance display element
+      if (balanceElement) {
+        balanceElement.textContent = remainingBalance.toFixed(2); // Display balance rounded to 2 decimal places
+      }
+      const totalBetElement = document.getElementById('totalBetAmount');
+      if (totalBetElement) {
+        totalBetElement.classList.add('hidden2'); // Start fade out animation
+        balance.classList.add('hidden3');
+
+        // Wait for the fade out to complete before updating the value and fading in
+        setTimeout(() => {
+          let stringValue =  web3.utils.fromWei(totalBetAmount.toString(), 'ether');
+          let splicedValue = stringValue.slice(1);
+          if(stringValue  == 0) {
+            totalBetElement.textContent = `${stringValue}`
+          } else if (stringValue >= 0 && stringValue < 1) {
+            totalBetElement.textContent = `${splicedValue}`;
+          } else if (stringValue >= 1) {
+            totalBetElement.textContent = `${stringValue}`;
+          }
+          totalBetElement.classList.remove('hidden2'); // Start fade in animation
+          balance.classList.remove('hidden3');
+
+        }, 150); // Match this duration with the CSS transition duration
+      }
+    } else {
+      console.error("Failed to fetch current balance.");
+    }
+  } catch (error) {
+    console.error("Error displaying total bet amount:", error);
+  }
+};
+
+
+
+
+const numberedBoards = document.querySelectorAll('.numbered-board');
+
+
+async function getColorMappingFromContract() {
+    try {
+        const result = await contract.methods.getColorMapping().call();
+        return result; // Returns uint8[6] array
+    } catch (error) {
+        console.error("Error fetching color mapping:", error);
+        return null;
+    }
+}
+async function applyColorMapping() {
+    const colorMapping = await getColorMappingFromContract();
+    if (!colorMapping) {
+        console.log("Error: Failed to fetch color mapping from contract");
+        return;
+    }
+
+    let colors = { red: 0, black: 0 };
+    numberedBoards.forEach((board, index) => {
+        const color = colorMapping[index] == 1 ? 'red' : 'black';
+        board.classList.remove('red', 'black'); 
+        board.classList.add(color);
+        colors[color]++;
+        console.log("Index " + index + " with value " + colorMapping[index] + ", color applied: " + color);
+    });
+    console.log("Colors assigned:", colors);
+}
+
+function triggerConfetti(amountWon) {
+  var duration = 2 * 1000;
+  var end = Date.now() + duration;
+  let winMessage =  document.getElementById('winMessage')
+  winMessage.textContent = `WINNER! +${amountWon} MATIC`;
+  winMessage.classList.add('show');
+
+  setTimeout(() => {
+    document.getElementById('winMessage').classList.remove('show');
+  }, 2500);
+
+  // Randomly generate confetti with various colors and angles
+  (function frame() {
+    confetti({
+      particleCount: 5,
+      angle: 60,
+      spread: 55,
+      origin: { x: 0 }
+    });
+    confetti({
+      particleCount: 5,
+      angle: 120,
+      spread: 55,
+      origin: { x: 1 }
+    });
+
+    if (Date.now() < end) {
+      requestAnimationFrame(frame);
+    }
+  }());
+}
+
+function triggerLossParticles(amountLost) {
+  document.getElementById('lossParticles').classList.remove('hidden');
+  let lossMessage = document.getElementById('loseMessage');
+  lossMessage.textContent = `YOU LOSE -${amountLost} MATIC`;
+  lossMessage.classList.add('show');
+
+  particlesJS('lossParticles', {
+    particles: {
+      number: { value: 50 },
+      color: { value: '#ff0000' }, // Red color for particles
+      shape: {
+        type: 'circle', // Use circles instead of an image
+      },
+      opacity: { value: 0.8 },
+      size: { value: 10, random: true },
+      move: {
+        direction: 'bottom', // Move particles downwards
+        speed: 5,
+        out_mode: 'out', // Remove particles when they go out of canvas
+      },
+      line_linked: { enable: false }, // No links between particles
+    },
+    interactivity: {
+      detect_on: 'canvas',
+      events: {
+        onhover: { enable: false },
+        onclick: { enable: false },
+      },
+    },
+    retina_detect: true,
+  });
+
+  // Hide particles and message after animation
+  setTimeout(() => {
+    document.getElementById('lossParticles').classList.add('hidden');
+    lossMessage.classList.remove('show');
+  }, 2500); // Duration of the particle effect and message
+}
+
+
+// we don't need to update the balance after a loss since the amount is already deducted when placing a chip.
+
+// when updating balance after a loss or win, the balance needs to be sliced
+
+// if there is a win, upon increasing the balance, play the increase animation.
+
+// disable chips when balance reaches 0. Disable chips once balance reaches certain thresholds eg. balance < 1 ? 1 chip disabled.
+// prevent balance text from dropping below zero in the event the chips can be placed. 
+
+// DISABLE CHIPS ON BOARD ONCE BETS ARE PLACED
+
+// LOSS PARTICES NOT ACTIVE ON LOSS.
+</script>
+</body>
+</html>
