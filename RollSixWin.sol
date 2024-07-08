@@ -25,8 +25,6 @@ contract RollSixWin is VRFConsumerBaseV2Plus {
     struct PlayerStats {
         uint256 totalWageredAmount;
         uint256 totalBetsWon;
-        // Calculate the total amount lost by subtracting the bets placed from the bets won
-        // Calcluate the total winnings by subtracting totalWagerAmount from netProfit
         int256 netProfit;
     }
 
@@ -107,7 +105,7 @@ contract RollSixWin is VRFConsumerBaseV2Plus {
     {
         _subscriptionId = subscriptionId;
         _owner = msg.sender;
-        feeBasisPoints = 360;
+        feeBasisPoints = 300;
         maximumBet = 1 ether;
         minimumBet = 10000000000000000;
         for (uint8 i = 0; i < 6; i++) {
@@ -190,7 +188,6 @@ contract RollSixWin is VRFConsumerBaseV2Plus {
         
         player.balance = playerBalance;
         uint8 diceResult = uint8((wordBank[msg.sender][(currentRound - 1) % numWords] % 6) + 1);
-        addWinningNumberToHistory(msg.sender, diceResult);
         processPlay(msg.sender, diceResult);
         player.currentRound++;
     }
@@ -206,7 +203,7 @@ contract RollSixWin is VRFConsumerBaseV2Plus {
     /// @notice Allows the owner to update the fee settings
     /// @param _feeBasisPoints Fee in basis points
     function changeFeeAmount(uint256 _feeBasisPoints) external ownerOnly {
-        require(_feeBasisPoints > 360 && _feeBasisPoints <= 2000 , "Fee must be in range of %3.6 and %20 (360 and 2000 basis points).");
+        require(_feeBasisPoints >= 300 && _feeBasisPoints <= 1500 , "Fee must be in range of %3 and %15 (300 and 1500 basis points).");
         feeBasisPoints = _feeBasisPoints;
 
         emit FeeSettingsChanged(_feeBasisPoints, block.timestamp);
@@ -270,9 +267,6 @@ contract RollSixWin is VRFConsumerBaseV2Plus {
         public 
         view  
         returns(
-            uint256,
-            uint256,
-            uint256, 
             uint256, 
             uint256, 
             int256
@@ -307,7 +301,7 @@ contract RollSixWin is VRFConsumerBaseV2Plus {
 
     /// @notice Gets consecutive wins for each bet type
     /// @return consecutiveWins An array of uint256 representing the consecutive wins for each bet type
-    function getConsecutiveWins() public view returns(uint256[3] memory) {
+    function getConsecutiveWins() public view returns(uint256[] memory) {
         uint256[] memory consecutiveWins = new uint256[](3);
         for (uint8 i = 0; i < 3; i++) {
             consecutiveWins[i] = playerWins[msg.sender][i];
@@ -403,7 +397,7 @@ contract RollSixWin is VRFConsumerBaseV2Plus {
                     if (win && betCount == 1) {
                         playerWins[playersAddress][betType]++;
                     } else {
-                        delete playerWins[playersAddress][betType];
+                        playerWins[playersAddress][betType] = 0;
                     }
                     
                     delete playerBets[playersAddress][key];
