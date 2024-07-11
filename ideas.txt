@@ -1,0 +1,9 @@
+Main ideas moving ahead next week is to implement a visual animation that visually gives the amount won to the player on the board they
+won on. This will add alot of apeal and make the player want to go for the win even more. This means a couple of things need to happen:
+
+1. Chips must generate in actual quantity based on user's balance. Generate chip function must give out certain denominations of chips
+    based on amount available. inside of the chip container, we must add the chips in a way where you can see the stack of chips, this
+    may mean something like making each stacks chips position absolute and when setting or genereating, translating by x amount based
+    on the previous chips position. just an idea, implementation can be you choosing.
+2. After a bet is won we give back the amount won in the same denomination of chips that the bet was placed with. 
+3. Eventually, this can be last, we must have a cashier function or button to give out different denomination of chips.
