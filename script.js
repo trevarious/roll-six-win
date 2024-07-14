@@ -15,36 +15,53 @@ const balance = document.getElementById("balance");
 const round = document.getElementById("round");
 const numberedBoards = document.querySelectorAll('.numbered-board');
 
+let tenthCounter = 0;
+let twentyFifthCounter = 0;
+let fiftiethCounter = 0;
+let oneCounter = 0;
+
 const initialize = async () => {
   if (window.ethereum) {
-    try {
-      const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
-      userAccount = accounts[0];
-      web3 = new Web3(window.ethereum);
-      contract = new web3.eth.Contract(contractABI, contractAddress);
-      connectWalletButton.disabled = true;
-      const timestamp = new Date().toLocaleString();
-      console.log(`Log in successful at ${timestamp}`);
-      const accountConnectionIndicator = document.getElementById("log-status-indicator");
-      accountConnectionIndicator.classList.add('logged-in');
-      const rollIndicator = document.getElementById('roll-indicator');
-      rollIndicator.classList.add('active');
-      setTimeout(() => { rollIndicator.classList.remove('active') }, 2000);
-      updateAccountDisplay();
-      let totalBetAmount = calculateTotalBetAmount();
-      updateBetDisplay(totalBetAmount);
-      updateColorMapping();
-      fetchAndUpdateConsecutiveWins();
-      dealChips();
-    } catch (error) {
-      console.log(error);
-      alert("There was an error connecting wallet");
+    let response = prompt("Would you like to sign in with MetaMask?");
+    // Check if response is exactly 'y' or 'n'
+    if (response.toLowerCase() === 'y') {
+      try {
+        const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
+        userAccount = accounts[0];
+        web3 = new Web3(window.ethereum);
+        contract = new web3.eth.Contract(contractABI, contractAddress);
+        connectWalletButton.disabled = true;
+        const timestamp = new Date().toLocaleString();
+        console.log(`Log in successful at ${timestamp}`);
+        const accountConnectionIndicator = document.getElementById("log-status-indicator");
+        accountConnectionIndicator.classList.add('logged-in');
+        const rollIndicator = document.getElementById('roll-indicator');
+        rollIndicator.classList.add('logged-in');
+        rollIndicator.textContent = 'Welcome';
+        setTimeout(() => { rollIndicator.classList.remove('logged-in'); rollIndicator.textContent = ''; }, 3000);
+        updateAccountDisplay();
+        let totalBetAmount = calculateTotalBetAmount();
+        updateBetDisplay(totalBetAmount);
+        updateColorMapping();
+        fetchAndUpdateConsecutiveWins();
+        dealChips();
+            } catch (error) {
+        console.log(error);
+        alert("There was an error connecting wallet");
+      }
+    } else if (response.toLowerCase() === 'n') {
+      console.log("User declined sign-in with MetaMask.");
+      // Optionally handle the case where user declined to sign in
+    } else {
+      console.log("Invalid response. Please enter 'y' or 'n'.");
+      alert("Invalid response. Please enter 'y' or 'n'.");
     }
   } else {
     console.log("Failed to make request");
     alert("Failed to make request");
   }
 };
+
 connectWalletButton.addEventListener("click", initialize);
 // Handles updating UI account wallet address display
 const accountAddress = document.getElementById('wallet-address');
@@ -101,20 +118,32 @@ const fetchBalance = async () => {
     return null;
   }
 };
+const fetchRoundNumber = async () => {
+  try {
+    const roundNumber = await contract.methods.getCurrentRound().call({ from: userAccount });
+    return roundNumber;
+  } catch (error) {
+    console.error("Error updating Round number:", error);
+    return null;
+  }
+};
 const updateBetDisplay = async (totalBetAmount) => {
   try {
     let currentBalance = await fetchBalance();
+    let roundNumber = await fetchRoundNumber();
+    if(roundNumber !== parseInt(round.textContent)) {
+      round.textContent = roundNumber;
+    }
     let betAmountInMatic = web3.utils.fromWei(totalBetAmount.toString());
     if (currentBalance !== null) {
       let remainingBalance = currentBalance - betAmountInMatic; 
       const balanceElement = document.getElementById('balance'); 
-      if (balanceElement) {
+      if (parseFloat(balanceElement.textContent) !== currentBalance) {
         balanceElement.textContent = remainingBalance.toFixed(2); 
       }
       const totalBetElement = document.getElementById('totalBetAmount');
       if (totalBetElement) {
         totalBetElement.classList.add('hidden2'); 
-        balance.classList.add('hidden3');
         setTimeout(() => {
           let stringValue =  web3.utils.fromWei(totalBetAmount.toString(), 'ether');
           let splicedValue = stringValue.slice(1);
@@ -126,7 +155,6 @@ const updateBetDisplay = async (totalBetAmount) => {
             totalBetElement.textContent = `${stringValue}`;
           }
           totalBetElement.classList.remove('hidden2'); 
-          balance.classList.remove('hidden3');
         }, 150);
       }
     } else {
@@ -162,7 +190,7 @@ const updateColorMapping = async () => {
           board.classList.add(color);
           colors[color]++;
           console.log("Index " + index + " with value " + colorMapping[index] + ", color applied: " + color);
-        }, 3000)
+        }, 1000)
     });
     console.log("Colors assigned:", colors);
 }
@@ -188,18 +216,19 @@ const fetchAndUpdateConsecutiveWins = async () => {
 const updateBoardMultiplier = (elementclass,multipliedAmount) => {
   const boardToChange = document.querySelectorAll(`${elementclass}`);
   if(elementclass == '.parity-streaks' || elementclass == '.color-streaks') {
-    multipliedAmount = multipliedAmount == 1 ? multipliedAmount : multipliedAmount == 2 ? 1.5 : multipliedAmount == 3 ? 2 : multipliedAmount == 4 ? 2.5 : multipliedAmount == 5 ? 3 : multipliedAmount == 6 ? 4 : multipliedAmount == 7 ? 5 : multipliedAmount == 8 ? 6 : '';
+    multipliedAmount = multipliedAmount == 1 ? 1 : multipliedAmount == 2 ? 1.5 : multipliedAmount == 3 ? 2 : multipliedAmount == 4 ? 2.5 : multipliedAmount == 5 ? 3 : multipliedAmount == 6 ? 4 : multipliedAmount == 7 ? 5 : multipliedAmount == 8 ? 6 : '';
   }
   boardToChange.forEach(board => {
     const previousWinMultiplier = board.querySelector('.win-multiplier');
     if (previousWinMultiplier) {
       board.removeChild(previousWinMultiplier);
     }
-    if(multipliedAmount > 1){
+    if(multipliedAmount >= 1){
       if(elementclass == '.parity-streaks') {
         const element = document.createElement('div');
         element.classList.add('win-multiplier');
         element.style.color = 'white';
+        element.style.top = '30%';
         element.textContent =  `${multipliedAmount}x`;
         board.appendChild(element);
       } else if(elementclass == '.number-streaks') {
@@ -208,9 +237,10 @@ const updateBoardMultiplier = (elementclass,multipliedAmount) => {
         element.style.color = 'white';
         element.style.position = 'absolute';
         element.style.top = '25%';
-        if(multipliedAmount > 2 ) {        element.textContent =  `${multipliedAmount == 3 ? .1 : multipliedAmount == 4 ? .5 : multipliedAmount == 5 ? .5 : multipliedAmount == 6 ? 1 : ''}%`;}
+        if(multipliedAmount > 2 ) {
+          element.textContent =  `${multipliedAmount == 3 ? .1 : multipliedAmount == 4 ? .5 : multipliedAmount == 5 ? .5 : multipliedAmount == 6 ? 1 : ''}%`;
+        }
         board.appendChild(element);
-
       } else if( elementclass == '.color-streaks') {
         const element = document.createElement('div');
         element.classList.add('win-multiplier');
@@ -222,30 +252,27 @@ const updateBoardMultiplier = (elementclass,multipliedAmount) => {
     }
   })
 }
+let chipsContainerValue = [];
 const dealChips = async () => {
   const chipsContainer = document.getElementById('chips');
   const tenthStack = document.getElementById('chip0_1');
-  let tenthCounter = 0;
   const twentyFifthStack = document.getElementById('chip0_25');
-  let twentyFifthCounter = 0;
   const fiftiethStack = document.getElementById('chip0_5');
-  let fiftiethCounter = 0;
   const oneStack = document.getElementById('chip1_0');
-  let oneCounter = 0;
   const chipValues = [1, 0.5, 0.25, 0.1]; // Define your chip values in descending order for better logic
   let amountDistributed = 0;
   let amountToDistribute = 0;
   try {
     const balanceValue = await contract.methods.getBalance().call({ from: userAccount });
     const balanceInMatic = web3.utils.fromWei(balanceValue);
-
+    let testAmount = amountToDistribute;
     let remainingBalance = parseFloat(balanceInMatic); // Parse float to ensure accurate comparisons
-    amountToDistribute = remainingBalance; // Parse float to ensure accurate comparisons
+    amountToDistribute = remainingBalance; // Parse float to ensure accurate comparisons amountDistributed to compare
     while (amountToDistribute >= amountDistributed) {
       for (let i = 0; i < chipValues.length; i++) {
-        let randomHundreths = Math.floor(Math.random() * 10);
-        let translateY = parseFloat(`67.9${randomHundreths}`);
-        let randomXtranslate = Math.floor(Math.random() * (16 - 10)) + 20;
+        testAmount++;
+        let randomYTranslate = Math.floor(Math.random() * 61) - 10;
+        let randomXtranslate = Math.floor(Math.random() * 61) - 30;
         let randomRotation = Math.floor(Math.random() * 45);
         const value = chipValues[i];
         const chip = document.createElement('div');
@@ -254,10 +281,12 @@ const dealChips = async () => {
         chip.setAttribute('data-value', value);
 
         chip.innerHTML = `
-          <div class="x-axis"></div>
-          <div class="y-axis"></div>
           <div class="center-circle"></div>
           <div class="center-circle value">${value}</div>
+          <div class="l-axis ${value == 0.1 ? 'tenth' : value == 0.25 ? 'twentyFifth' : value == 0.5 ? 'fiftieth' : value == 1 ? 'one' : ''}"></div>
+          <div class="r-axis ${value == 0.1 ? 'tenth' : value == 0.25 ? 'twentyFifth' : value == 0.5 ? 'fiftieth' : value == 1 ? 'one' : ''}"></div>
+          <div class="t-axis ${value == 0.1 ? 'tenth' : value == 0.25 ? 'twentyFifth' : value == 0.5 ? 'fiftieth' : value == 1 ? 'one' : ''}"></div>
+          <div class="b-axis ${value == 0.1 ? 'tenth' : value == 0.25 ? 'twentyFifth' : value == 0.5 ? 'fiftieth' : value == 1 ? 'one' : ''}"></div>
         `;
         
         switch (value) {
@@ -265,7 +294,7 @@ const dealChips = async () => {
             chip.addEventListener('dragstart', dragStart);
             chip.addEventListener('dragend', dragEnd);
             // Apply random translation within the stack
-            chip.style.transform = `translateY(-${translateY * tenthCounter}px) translateX(${Math.floor(Math.random() * randomXtranslate) + 1}px) rotate(${randomRotation}deg)`;
+            chip.style.transform = `translateY(${randomYTranslate}px) translateX(${Math.floor(Math.random() * randomXtranslate) + 1}px) rotate(${randomRotation}deg)`;
             tenthCounter++;
             chip.classList.add('chip-0_1');
             tenthStack.appendChild(chip);
@@ -274,7 +303,7 @@ const dealChips = async () => {
             chip.addEventListener('dragstart', dragStart);
             chip.addEventListener('dragend', dragEnd);
             // Apply random translation within the stack
-            chip.style.transform = `translateY(-${translateY * twentyFifthCounter}px) translateX(${Math.floor(Math.random() * 15) + 1}px) rotate(${randomRotation}deg)`;
+            chip.style.transform = `translateY(${randomYTranslate}px) translateX(${Math.floor(Math.random() * randomXtranslate) + 1}px) rotate(${randomRotation}deg)`;
             twentyFifthCounter++;
             chip.classList.add('chip-0_25');
             twentyFifthStack.appendChild(chip);
@@ -283,7 +312,7 @@ const dealChips = async () => {
             chip.addEventListener('dragstart', dragStart);
             chip.addEventListener('dragend', dragEnd);
             // Apply random translation within the stack
-            chip.style.transform = `translateY(-${translateY * fiftiethCounter}px) translateX(${Math.floor(Math.random() * 15) + 1}px) rotate(${randomRotation}deg)`;
+            chip.style.transform = `translateY(${randomYTranslate}px) translateX(${Math.floor(Math.random() * randomXtranslate) + 1}px) rotate(${randomRotation}deg)`;
             fiftiethCounter++;
             chip.classList.add('chip-0_5');
             fiftiethStack.appendChild(chip);
@@ -291,7 +320,7 @@ const dealChips = async () => {
           case 1:
             chip.addEventListener('dragstart', dragStart);
             chip.addEventListener('dragend', dragEnd);
-            chip.style.transform = `translateY(-${translateY * oneCounter}px) translateX(${Math.floor(Math.random() * randomXtranslate ) + 1}px) rotate(${randomRotation}deg)`;
+            chip.style.transform = `translateY(${randomYTranslate}px) translateX(${Math.floor(Math.random() * randomXtranslate ) + 1}px) rotate(${randomRotation}deg)`;
             oneCounter++;
             chip.classList.add('chip-1');
             oneStack.appendChild(chip);
@@ -300,7 +329,7 @@ const dealChips = async () => {
             chip.addEventListener('dragstart', dragStart);
             chip.addEventListener('dragend', dragEnd);
             // Apply random translation within the stack
-            chip.style.transform = `translateY(-${translateY * tenthCounter}px) rotate(${randomRotation}deg)`;
+            chip.style.transform = `translateY(${randomYTranslate}px) rotate(${randomRotation}deg)`;
             chip.classList.add('chip-default');
             chipsContainer.appendChild(chip);
             break;
@@ -365,6 +394,7 @@ rollIndicator.classList.add('rolling');
     let totalBetAmounts = calculateTotalBetAmount();
     let totalProfitForRound = 0;
     let netProfitForRound = 0;
+    let bonuses = 0;
 
     console.log("Total bet amounts " + totalBetAmounts);
 
@@ -382,6 +412,19 @@ rollIndicator.classList.add('rolling');
     console.log(receipt);
 
     if (receipt.events && receipt.events.Result) {
+      if(receipt.events.BonusPaid) {
+        if(Array.isArray(receipt.events.BonusPaid)) {
+          for(let i = 0; i < receipt.events.BonusPaid.length; i ++) {
+            bonuses += parseFloat(web3.utils.fromWei(receipt.events.BonusPaid[i].returnValues[2]));
+          }
+          console.log(`Bonus paid: ${bonuses}`);
+        } else {
+          bonuses += parseFloat(web3.utils.fromWei(receipt.events.BonusPaid.returnValues[2]));
+          console.log(`Bonus paid: ${bonuses}`);
+        }
+      } else {
+        console.log('no bonuses to pay');
+      }
       rollIndicator.classList.remove('rolling');
       rollIndicator.classList.add('active');
       if (Array.isArray(receipt.events.Result)) {
@@ -426,16 +469,17 @@ rollIndicator.classList.add('rolling');
       }
 
       let totalBetAmountsInMatic = parseFloat(web3.utils.fromWei(totalBetAmounts.toString()));
-
+      totalProfitForRound += bonuses;
       if (totalBetAmountsInMatic > totalProfitForRound) {
         netProfitForRound = totalBetAmountsInMatic - totalProfitForRound;
-
-        setTimeout(() => { lossAnimation(netProfitForRound)}, 5500);
+        setTimeout(() => { lossAnimation(netProfitForRound)}, 5050);
       } else if (totalBetAmountsInMatic < totalProfitForRound) {
         netProfitForRound = totalProfitForRound - totalBetAmountsInMatic;
-        setTimeout(() => {winAnimation(netProfitForRound)}, 5550);
+        setTimeout(() => {winAnimation(netProfitForRound)}, 5050);
+        dealWinningChips(netProfitForRound, bets);
       } else {
-        setTimeout(() => {breakEvenAnimation()}, 5550);
+        setTimeout(() => {breakEvenAnimation()}, 5050);
+        dealWinningChips(netProfitForRound, bets, receipt);
       }
 
     } else {
@@ -456,11 +500,11 @@ rollIndicator.classList.add('rolling');
     let updatedTotalBetAmount = calculateTotalBetAmount();
     let updatedTotalBetAmountInMatic = parseFloat(web3.utils.fromWei(updatedTotalBetAmount.toString()));
     setTimeout(() => {
-      updateStats();
+      // updateStats();
       updateBetDisplay(updatedTotalBetAmountInMatic);
       updateColorMapping();
       fetchAndUpdateConsecutiveWins();
-    }, 8500);
+    }, 9000);
   } catch (error) {
     console.error("Error placing bets:", error);
     alert("Error placing bets: " + error.message);
@@ -473,7 +517,7 @@ rollIndicator.classList.add('rolling');
       chips.forEach(chip => chip.remove());
     });
     bets.length = 0;
-    updateStats();
+    // updateStats();
     setTimeout(() => {
       totalBetAmount.textContent = 0;
     }, 150);
@@ -487,7 +531,7 @@ const updateStats = async () => {
     const balanceInMatic = web3.utils.fromWei(balanceValue);
     const roundValue = await contract.methods.getCurrentRound().call({ from: userAccount });
     let sliceAmount = balanceInMatic > 0 && balanceInMatic < 10 ? 4 : balanceInMatic < 100 ? 5 : balanceInMatic < 1000 ? 6 : balanceInMatic < 10000 ? 7 : 0; 
-    balance.textContent = balanceInMatic.slice(0, sliceAmount);
+    balance.textContent = balanceInMatic;
     if (balanceInMatic < 1) {
       depositButton.classList.add('broke');
     } else {
@@ -504,8 +548,10 @@ chips.forEach(chip => {
   chip.addEventListener('dragstart', dragStart);
   chip.addEventListener('dragend', dragEnd);
 });
-function dragStart() {
+function dragStart(event) {
   this.classList.add('dragging');
+  this.initialX = event.offsetX;
+  this.initialY = event.offsetY;
   const chipValue = parseFloat(this.getAttribute('data-value'));
   const remainingBalance = parseFloat(balance.textContent);
   if (chipValue > remainingBalance) {
@@ -538,12 +584,16 @@ const removeChip = (chip, value, boardValue) => {
       console.log(`Chip with a value of ${chipValue} has been enabled.`);
     }
   });
+  // Remove the chip from the board
   chip.remove();
+
   decreaseAnimation();
+
   // Convert value to Wei
   const valueInWei = web3.utils.toWei(value.toString(), 'ether');
   const guess = parseInt(boardValue <= 6 ? boardValue : boardValue == 7 ? 1 : boardValue == 8 ? 2 : boardValue == 9 ? 1 : 2);
-  // Remove the bet from the bets array
+
+  // Find index of the bet in the bets array
   const index = bets.findIndex(bet => bet.amount == valueInWei && bet.guess == guess);
   if (index !== -1) {
     bets.splice(index, 1);
@@ -553,8 +603,126 @@ const removeChip = (chip, value, boardValue) => {
   } else {
     console.log(`No matching bet found for removal: ${valueInWei}, ${boardValue}`);
   }
+
   balance.textContent = `${remainingBalance}`;
   updateBetDisplay(calculateTotalBetAmount());
+  let randomYTranslate = Math.floor(Math.random() * 61) - 10;
+  let randomXtranslate = Math.floor(Math.random() * 101) - 50;
+  let randomRotation = Math.floor(Math.random() * 45);
+
+  //Place the chip back to its corresponding stack
+  switch (value) {
+    case 0.1:
+      const tenthStack = document.getElementById('chip0_1');
+      const newChip0_1 = createChipElement(value);
+      newChip0_1.style.transform = `translateY(${randomYTranslate}px) translateX(${Math.floor(Math.random() * randomXtranslate) + 1}px) rotate(${randomRotation}deg)`;
+      tenthStack.appendChild(newChip0_1);
+      break;
+    case 0.25:
+      const twentyFifthStack = document.getElementById('chip0_25');
+      const newChip0_25 = createChipElement(value);
+      newChip0_25.style.transform = `translateY(${randomYTranslate}px) translateX(${Math.floor(Math.random() * randomXtranslate) + 1}px) rotate(${randomRotation}deg)`;
+      twentyFifthStack.appendChild(newChip0_25);
+      break;
+    case 0.5:
+      const fiftiethStack = document.getElementById('chip0_5');
+      const newChip0_5 = createChipElement(value);
+      newChip0_5.style.transform = `translateY(${randomYTranslate}px) translateX(${Math.floor(Math.random() * randomXtranslate) + 1}px) rotate(${randomRotation}deg)`;
+      fiftiethStack.appendChild(newChip0_5);
+      break;
+    case 1:
+      const oneStack = document.getElementById('chip1_0');
+      const newChip1_0 = createChipElement(value);
+      newChip1_0.style.transform = `translateY(${randomYTranslate}px) translateX(${Math.floor(Math.random() * randomXtranslate) + 1}px) rotate(${randomRotation}deg)`;
+      oneStack.appendChild(newChip1_0);
+      break;
+    default:
+      // Handle default case if necessary
+      break;
+  }
+};
+const createChipElement = (value) => {
+  const chip = document.createElement('div');
+  chip.className = 'chip';
+  chip.setAttribute('draggable', 'true');
+  chip.setAttribute('data-value', value);
+  chip.classList.add(`${value == 0.1 ? 'chip-0_1' : value == 0.25 ? 'chip-0_25' : value == 0.5 ? 'chip-0_5' : value == 1 ? 'chip-1' : '' }`);
+  chip.innerHTML = `
+  <div class="center-circle"></div>
+  <div class="center-circle value">${value}</div>
+  <div class="l-axis ${value == 0.1 ? 'tenth' : value == 0.25 ? 'twentyFifth' : value == 0.5 ? 'fiftieth' : value == 1 ? 'one' : ''}"></div>
+  <div class="r-axis ${value == 0.1 ? 'tenth' : value == 0.25 ? 'twentyFifth' : value == 0.5 ? 'fiftieth' : value == 1 ? 'one' : ''}"></div>
+  <div class="t-axis ${value == 0.1 ? 'tenth' : value == 0.25 ? 'twentyFifth' : value == 0.5 ? 'fiftieth' : value == 1 ? 'one' : ''}"></div>
+  <div class="b-axis ${value == 0.1 ? 'tenth' : value == 0.25 ? 'twentyFifth' : value == 0.5 ? 'fiftieth' : value == 1 ? 'one' : ''}"></div>
+`;
+  // Add drag and animation listeners as needed
+  chip.addEventListener('dragstart', dragStart);
+  chip.addEventListener('dragend', dragEnd);
+  return chip;
+}
+const dealWinningChips = (netProfitForRound, bets, receipt) => {
+  const chipValues = [1, 0.5, 0.25, 0.1]; // Define chip values in descending order
+  let remainingProfit = netProfitForRound;
+  // if (receipt.events && receipt.events.Result) {
+  //   if(receipt.events.BonusPaid) {
+  //     if(Array.isArray(receipt.events.BonusPaid)) {
+  //       for(let i = 0; i < receipt.events.BonusPaid.length; i ++) {
+  //         bonuses += parseFloat(web3.utils.fromWei(receipt.events.BonusPaid[i].returnValues[2]));
+  //       }
+  //       console.log(`Bonus paid: ${bonuses}`);
+  //     } else {
+  //       bonuses += parseFloat(web3.utils.fromWei(receipt.events.BonusPaid.returnValues[2]));
+  //       console.log(`Bonus paid: ${bonuses}`);
+  //     }
+  //   } else {
+  //     console.log('no bonuses to pay');
+  //   }
+  // }
+  chipValues.forEach(value => {
+    const numberOfChips = Math.floor(remainingProfit / value);
+    remainingProfit -= numberOfChips * value;
+
+    for (let i = 0; i < numberOfChips; i++) {
+      // Create chip element (assuming createChipElement exists and works correctly)
+      const chip = createChipElement(value);
+
+      // Apply random transformations
+      let randomYTranslate = Math.floor(Math.random() * 61) - 10;
+      let randomXTranslate = Math.floor(Math.random() * 101) - 50;
+      let randomRotation = Math.floor(Math.random() * 45);
+      chip.style.transform = `translateY(${randomYTranslate}px) translateX(${randomXTranslate}px) rotate(${randomRotation}deg)`;
+
+      // Append chip to the correct board based on betType and guess
+      const boards = document.querySelectorAll('.betting-board');
+      bets.forEach(bet => {
+        if (bet.betType === 1) {
+          if (bet.guess === 1) {
+            chip.classList.remove('dragging');
+            chip.classList.add('placed');
+            boards[1].appendChild(chip);
+            console.log(`Chip dealt: ${chip}`);
+          } else {
+            chip.classList.remove('dragging');
+            chip.classList.add('placed');
+            boards[0].appendChild(chip);
+            console.log(`Chip dealt: ${chip}`);
+          }
+        } else if (bet.betType === 2) {
+          if (bet.guess === 1) {
+            chip.classList.remove('dragging');
+            chip.classList.add('placed');
+            boards[9].appendChild(chip);
+            console.log(`Chip dealt: ${chip}`);
+          } else {
+            chip.classList.remove('dragging');
+            chip.classList.add('placed');
+            boards[8].appendChild(chip);
+            console.log(`Chip dealt: ${chip}`);
+          }
+        }
+      });
+    }
+  });
 };
 
 // BOARD FUNCTIONALITY
@@ -592,26 +760,24 @@ function dragDrop(e) {
     const offsetY = e.clientY - rect.top;  // Calculate Y position relative to target
     // Check if dropping this chip will exceed the current balance
     const remainingBalance = parseFloat(balance.textContent);
-    const newChip = chip.cloneNode(true);
-    newChip.classList.remove('dragging');
-    newChip.classList.add('placed');
-    newChip.style.position = 'absolute';
-    newChip.style.top = `${offsetY}px`;
-    newChip.style.left = `${offsetX}px`;
+
+    chip.classList.remove('dragging');
+    chip.classList.add('placed');
+    chip.style.position = 'absolute';
+    chip.style.top = `${offsetY}px`;
+    chip.style.left = `${offsetX}px`;
     setTimeout(() => {
        // Generate a random rotation angle (example: 0, 45, or 90 degrees)
       const randomAngle = Math.floor(Math.random() * 3) * 45; // Generates 0, 45, or 90
       // Apply the random keyframes animation to your element
-      newChip.style.animation = `rotate-${randomAngle} .2s ease-in-out forwards`;
+      chip.style.animation = `rotate-${randomAngle} .2s ease-in-out forwards`;
     }, 332)
-    // Generate a random rotation angle (example: 0, 45, or 90 degrees)
-    // Remove draggable attribute and add click event listener to remove the chip
-    newChip.removeAttribute('draggable');
-    newChip.addEventListener('click', () => {
-      removeChip(newChip, chipValue, boardValue);
+    chip.removeAttribute('draggable');
+    chip.addEventListener('click', () => {
+      removeChip(chip, chipValue, boardValue);
     });
     // Append the chip to the drop target (this)
-    this.appendChild(newChip);
+    this.appendChild(chip);
     // Add bet information to your bets array
     let betType = boardValue < 7 ? 0 : boardValue < 9 ? 1 : 2;
     const colorBet = this.classList.contains('black') ? 2 : 1;
@@ -623,12 +789,20 @@ function dragDrop(e) {
       guess: boardValue <= 6 ? boardValue : boardValue === 7 ? 1 : boardValue === 8 ? 2 : boardValue === 9 ? 1 : 2
     };
     bets.push(newBetObj);
-    console.log(`${stringWei} matic placed on ${boardValue <= 6 ? boardValue : boardValue === 7 ? 'odd' : boardValue === 8 ? 'even' : boardValue === 9 ? 'red' : 'black'} with bet type ${betType == 0 ? 'number' : betType == 1 ? 'parity' : 'color'}`);
-    // Calculate and display total bet amount
+    console.log(`${stringWei} matic placed on ${
+                  boardValue <= 6 
+                  ? boardValue 
+                  : boardValue === 7 
+                  ? 'odd' 
+                  : boardValue === 8 
+                  ? 'even' 
+                  : boardValue === 9 
+                  ? 'red' 
+                  : 'black'
+                } with bet type ${betType == 0 ? 'number' : betType == 1 ? 'parity' : 'color'}`);
     let totalBetAmount = calculateTotalBetAmount();
     updateBetDisplay(totalBetAmount);
     increaseAnimation();
-    // Log the number of bets for debugging purposes
     console.log(`Number of bets: ${bets.length}`);
   }
 }
@@ -646,8 +820,7 @@ const winAnimation = (amountWon) => {
   winMessage.classList.add('show');
   setTimeout(() => {
     document.getElementById('winMessage').classList.remove('show');
-  }, 2000);
-  // Randomly generate confetti with various colors and angles
+  }, 3000);
   (function frame() {
     confetti({
       particleCount: 5,
@@ -671,63 +844,94 @@ const lossAnimation = (amountLost) => {
   const rollIndicator = document.getElementById('roll-indicator');
   rollIndicator.classList.remove('active');
   document.getElementById('lossParticles').classList.remove('hidden');
+  document.getElementById('lossParticles').style.opacity = '0';
+  setTimeout(() => {
+    document.getElementById('lossParticles').style.opacity = '1';
+  }, 1);
   let lossMessage = document.getElementById('loseMessage');
   lossMessage.textContent = `YOU LOSE -${amountLost.toFixed(2)} MATIC`;
   lossMessage.classList.add('show');
   particlesJS('lossParticles', {
     particles: {
-      number: { value: 50 },
-      color: { value: '#ff0000' }, // Red color for particles
+      number: {
+        value: 100
+      },
+      color: {
+        value: '#ff0000' // Red color for particles
+      },
       shape: {
-        type: 'circle', // Use circles instead of an image
+        type: 'triangle',
+        polygon: {
+          nb_sides: 3 // Triangle shape with 3 sides
+        }
       },
-      opacity: { value: 0.8 },
-      size: { value: 10, random: true },
+      opacity: {
+        value: 0.9 // Opacity of particles
+      },
+      size: {
+        value: 5,
+        random: true // Random size for particles
+      },
       move: {
-        direction: 'bottom', // Move particles downwards
-        speed: 5,
-        out_mode: 'out', // Remove particles when they go out of canvas
+        direction: 'bottom', // Movement direction (bottom)
+        speed: 2, // Speed of particles
+        out_mode: 'out' // Behavior when particles move out of canvas ('out' removes them)
       },
-      line_linked: { enable: false }, // No links between particles
+      line_linked: {
+        enable: false // Enable linking lines between particles
+      }
     },
     interactivity: {
       detect_on: 'canvas',
       events: {
-        onhover: { enable: false },
-        onclick: { enable: false },
-      },
+        onhover: {
+          enable: false // Disable hover interaction
+        },
+        onclick: {
+          enable: false // Disable click interaction
+        }
+      }
     },
-    retina_detect: true,
+    retina_detect: true // Enable retina display support
   });
-  // Hide particles and message after animation
+  
   setTimeout(() => {
     document.getElementById('lossParticles').classList.add('hidden');
+  }, 5000);
+  setTimeout(() => {
+    document.getElementById('lossParticles').style.opacity = '0';
+  }, 4000);
+  setTimeout(() => {
     lossMessage.classList.remove('show');
-  }, 2000); // Duration of the particle effect and message
+  }, 2500);
 }
 const breakEvenAnimation = () => {
   const rollIndicator = document.getElementById('roll-indicator');
   rollIndicator.classList.remove('active');
-  document.getElementById('breakEven').classList.remove('hidden');
+  document.getElementById('breakEven').style.opacity = '0';
+  document.getElementById('breakEven').classList.remove('hidden'); 
+  setTimeout(() => {    
+    document.getElementById('breakEven').style.opacity = '1';
+  }, 1);
   let lossMessage = document.getElementById('breakEvenMessage');
   lossMessage.textContent = `Break Even`;
   lossMessage.classList.add('show');
   particlesJS('breakEven', {
     particles: {
       number: { value: 50 },
-      color: { value: '#ffffff' }, // Red color for particles
+      color: { value: '#ffffff' },
       shape: {
-        type: 'circle', // Use circles instead of an image
+        type: 'circle',
       },
-      opacity: { value: 0.8 },
-      size: { value: 10, random: true },
+      opacity: { value: 0.9 },
+      size: { value: 5, random: true },
       move: {
-        direction: 'none', // Move particles downwards
+        direction: 'none',
         speed: 5,
         random: true,
-        out_mode: 'out', // Remove particles when they go out of canvas
+        out_mode: 'out', 
       },
-      line_linked: { enable: false }, // No links between particles
+      line_linked: { enable: false }, 
     },
     interactivity: {
       detect_on: 'canvas',
@@ -741,15 +945,21 @@ const breakEvenAnimation = () => {
   setTimeout(() => {
     document.getElementById('breakEven').classList.add('hidden');
     lossMessage.classList.remove('show');
-  }, 2000);
+  }, 5000);
+  setTimeout(() => {    
+    document.getElementById('breakEven').style.opacity = '0';
+  }, 4000);
+  setTimeout(() => {
+    lossMessage.classList.remove('show');
+  }, 2500);
+
 }
 const rollAnimation = (winningNumber) =>  {
   const bettingBoard = document.querySelectorAll('.betting-board');
   const numberedBoards = document.querySelectorAll('.numbered-board');
   const carousel = document.querySelector('.carousel');
-  const carouselHeight = 55; // Adjust to match your .carousel-number height
-  const targetOffset = -(winningNumber) * carouselHeight; // Calculate offset based on winningNumber
-  // Animate the carousel to the target number
+  const carouselHeight = 55; 
+  const targetOffset = -(winningNumber) * carouselHeight; 
   carousel.style.transform = `translateY(${targetOffset}px)`;
   setTimeout(() => {
     numberedBoards.forEach(board => {
@@ -767,7 +977,7 @@ const rollAnimation = (winningNumber) =>  {
       board.classList.add('active');
     }
           })
-  }, 2500)
+  }, 5000)
   return targetOffset;
 }
 const unRollAnimation = (target) =>  {

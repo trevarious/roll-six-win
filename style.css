@@ -7,7 +7,7 @@ body {
     flex-direction: column;
     align-items: center;
     height: 100vh;
-    background-color: #004d00;
+    background-color: #102b10;
     color: #fff;
   }
   nav {
@@ -50,6 +50,7 @@ body {
     top: 0;
     left: 0;
     z-index: 1000;
+    transition: opacity 1s ease;
   }
   #breakEven {
     position: absolute;
@@ -58,6 +59,8 @@ body {
     top: 0;
     left: 0;
     z-index: 1000;
+    transition: opacity 1s ease;
+
   }
   
   #loseMessage {
@@ -69,7 +72,7 @@ body {
     color: red;
     font-weight: bold;
     opacity: 0;
-    transition: font-size 2s, opacity 2s;
+    transition: font-size 2.5s, opacity 2.5s;
     z-index: 1;
   }
   #loseMessage.show {
@@ -85,7 +88,7 @@ body {
     color: rgb(26, 255, 0);
     font-weight: bold;
     opacity: 0;
-    transition: font-size 2s, opacity 2s;
+    transition: font-size 2.5s, opacity 2.5s;
     z-index: 1;
   }
   
@@ -102,7 +105,7 @@ body {
     color: rgb(255, 255, 255);
     font-weight: bold;
     opacity: 0;
-    transition: font-size 2s, opacity 2s;
+    transition: font-size 2.5s, opacity 2.5s;
     z-index: 1;
   }
   
@@ -199,10 +202,6 @@ body {
     list-style: none;
     margin-right: 15px;
   }
-  #roll-indicator.active {
-    background-color: rgb(255, 255, 255);
-    animation: blink 0.5s ease infinite;
-  }
   #roll-indicator {
     margin: 0;
     border-bottom: none;
@@ -213,6 +212,35 @@ body {
     height: 24px; /* Adjust height to match carousel-number */
     position: relative; /* Ensure z-index works */
     box-shadow: none;
+  }
+  #roll-indicator.logged-in {
+    font-size: 1.5rem;
+    font-family: fantasy;
+    background: none !important;
+    color: gold;
+    animation: logged-in 1s infinite;
+    transition: color 1s ease;
+  }
+  @keyframes logged-in {
+    0% {
+      color:rgba(72, 255, 0, 0.5);
+    }
+    25% {
+      color: rgba(72, 255, 0, 0.75);
+    }
+    50% {
+      color: rgba(72, 255, 0, 1);
+    }
+    75% {
+      color: rgba(72, 255, 0, 0.75);
+    }
+    100% {
+      color: rgba(72, 255, 0, 0.5);
+    }
+  }
+  #roll-indicator.active {
+    background-color: rgb(255, 255, 255);
+    animation: blink 0.5s ease infinite;
   }
   #roll-indicator.rolling {
   animation: rolling 1s infinite;
@@ -242,6 +270,7 @@ body {
     font-size: 3rem; /* Adjust font size as needed */
     border-bottom: 5px solid rgba(72, 255, 0, 0.665); /* Example border */
   }
+
   #winningNumber {
     position: absolute;
     right: 50%;
@@ -254,7 +283,7 @@ body {
     font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
     justify-content: center;
     align-items: center;
-    background: linear-gradient(to right, #81f5815b, rgba(139, 243, 118, 0.5), rgba(124, 247, 140, 0.356));
+    background: linear-gradient(to right, #81f5815b, rgba(34, 204, 0, 0.5), rgba(124, 247, 140, 0.356));
   }
   #stats-container {
     padding-top: 15px;
@@ -302,19 +331,20 @@ body {
     height: auto;
     user-select: none;
     padding: 10px;
-  
+    background:
+      linear-gradient(rgba(0, 77, 0, 0.85),rgba(0, 77, 0, 0.85)),
+      green url(./betting-board.jpg) center/cover no-repeat;
   }
   
   .betting-board {
     width: 200px;
     height: 200px;
-    border: 1px solid black;
+    border: 1px dotted transparent;
+    background: rgba(112, 172, 112, 0.2);
     border-radius: none;
     margin: 8px;
     padding: 30px;
     position: relative;
-    background-color: #006400;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
     transition: box-shadow 0.3s;
     text-align: center;
     font-size: 1.5em;
@@ -324,10 +354,6 @@ body {
     animation: winner .1s infinite;
   }
   
-  .betting-board:hover {
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5);
-  }
-
   @keyframes drop {
     0% {
       bottom: -20px;
@@ -375,40 +401,42 @@ body {
     }
   }
   
-  /* Define more keyframes rules with different rotation angles as needed */
   .chips-container {
-    width: 35%;
+    width: 50%;
     display: flex;
     flex-direction: row;
-    border: 5px solid rgb(104, 104, 104);
+    border: 5px solid rgba(100, 100, 100, 0.85);
     padding: 10px;
     border-radius: 9%;
-    background: gray;
-    box-shadow: inset  5px 5px 5px 5px rgba(0, 0, 0, 0.274);
+    background: 
+      linear-gradient(rgba(129, 129, 129, 0.73), rgba(171, 171, 171, 0.73)); /* Semi-transparent overlay */
+    box-shadow: inset 5px 5px 5px 5px rgba(0, 0, 0, 0.274);
   }
+  
   .chip-stack {
     display: block;
-    padding-left: 1rem;
-    padding-top: 1rem;
+    padding-left: 4rem;
+    padding-top: .85rem;
     width: 25%; /* Each stack takes up 25% of the container */
     height: 125px;
     box-sizing: border-box;
-    overflow-y: hidden;
+    overflow: hidden;
   }
   
   
   .chip {
-    position: relative;
+    position: absolute;
     width: 60px;
     height: 60px;
     border-radius: 50%;
     background-color: #0b4b45; /* Dark teal background */
-    border: 4px solid rgba(255, 255, 255, 0.4); /* Light border */
+    border: 4px solid rgba(255, 255, 255, 1); /* Light border */
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     display: flex;
     justify-content: center;
     align-items: center;
     font-size: 18px; /* Larger font size */
+    font-family: Georgia, 'Times New Roman', Times, serif;
     color: #fff;
     text-align: center;
     cursor: pointer; /* Reverting to pointer cursor */
@@ -418,19 +446,105 @@ body {
     transform: scale(1.1); /* Slightly increase size on hover */
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
   }
-  .x-axis {
+  .l-axis {
     position: absolute;
-    width: 69px;
+    width: 4.5px;
     height: 10px;
-    border: 1px solid rgba(142, 142, 142, 0.108);
-    background-color: rgba(112, 112, 112, 0.2);
+    left: -5px;
+    border: 1px solid rgba(199, 234, 2, 0.35);
+    background-color: rgb(15, 15, 15);
+    border-radius: 1px 50% 50% 1px;
   }
-  .y-axis {
+  .r-axis {
+    position: absolute;
+    width: 4.5px;
+    height: 10px;
+    right: -5px;
+    border: 1px solid rgba(199, 234, 2, 0.35);
+    background-color: rgb(15, 15, 15);
+    border-radius: 50% 1px 1px 50%;
+  }
+  .t-axis {
     position: absolute;
     width: 10px;
-    height: 69px;
-    border: 1px solid rgba(142, 142, 142, 0.108);
-    background-color: rgba(112, 112, 112, 0.2);
+    height: 4.5px;
+    top: -5px;
+    border: 1px solid rgba(199, 234, 2, 0.35);
+    background-color: rgb(15, 15, 15);
+    border-radius: 1px 1px 50% 50%;
+  }
+  .b-axis {
+    position: absolute;
+    width: 10px;
+    height: 4.5px;
+    bottom: -5px;
+    border: 1px solid rgba(199, 234, 2, 0.35);
+    background-color: rgb(15, 15, 15);
+    border-radius: 50% 50% 1px 1px;
+  }
+  .l-axis.tenth {
+    background-color: rgb(129, 63, 74);
+    border: .5px solid rgb(170, 131, 131);
+  }
+  .r-axis.tenth {
+    background-color: rgb(129, 63, 74);
+    border: .5px solid rgb(170, 131, 131);
+  }
+  .t-axis.tenth {
+    background-color: rgb(129, 63, 74);
+    border: .5px solid rgb(170, 131, 131);
+  }
+  .b-axis.tenth {
+    background-color: rgb(129, 63, 74);
+    border: .5px solid rgb(170, 131, 131);
+  }
+  .l-axis.twentyFifth {
+    background-color: rgb(27, 103, 97);
+    border: .5px solid rgb(131, 170, 167);
+  }
+  .r-axis.twentyFifth {
+    background-color: rgb(27, 103, 97);
+    border: .5px solid rgb(131, 170, 167);
+  }
+  .t-axis.twentyFifth {
+    background-color: rgb(27, 103, 97);
+    border: .5px solid rgb(131, 170, 167);
+  }
+  .b-axis.twentyFifth {
+    background-color: rgb(27, 103, 97);
+    border: .5px solid rgb(131, 170, 167);
+  }
+  .l-axis.fiftieth {
+    background-color: rgb(22, 86, 39);
+    border: .5px solid rgb(132, 170, 131);
+  }
+  .r-axis.fiftieth {
+    background-color: rgb(22, 86, 39);
+    border: .5px solid rgb(132, 170, 131);
+  }
+  .t-axis.fiftieth {
+    background-color: rgb(22, 86, 39);
+    border: .5px solid rgb(132, 170, 131);
+  }
+  .b-axis.fiftieth {
+    background-color: rgb(22, 86, 39);
+    border: .5px solid rgb(132, 170, 131);
+  }
+  .l-axis.one {
+    background-color: rgb(70, 39, 0);
+    border: 1px solid rgb(215, 162, 102);
+  }
+  .r-axis.one {
+    background-color: rgb(70, 39, 0);
+    border: 1px solid rgb(215, 162, 102);
+  }
+  .t-axis.one {
+    background-color: rgb(70, 39, 0);
+    border: 1px solid rgb(215, 162, 102);
+  }
+  .b-axis.one {
+    background-color: rgb(70, 39, 0);
+    border: 1px solid rgb(215, 162, 102);
   }
   .chip.disabled {
     opacity: 0.1; /* Example: reduce opacity for disabled chips */
@@ -438,7 +552,7 @@ body {
     /* Add any additional styling for disabled chips */
   }
   .hovered {
-    border: 1px solid rgba(255, 217, 0, 0.2);
+    border: 1px dotted rgba(255, 217, 0, 0.5);
   }
   .chip .center-circle {
     width: 40px;
@@ -458,6 +572,10 @@ body {
     font-size: 24px;
     position: relative;
     z-index: 2;
+  }
+  .chip.dragging {  
+    opacity: .01;
+
   }
   .center-circle::before {
       content: ''; /* Required for pseudo-elements */
@@ -513,10 +631,12 @@ body {
   
   .red::before {
     background: linear-gradient(to top left,rgba(255, 0, 0, 1) , rgba(255, 197, 197, 0.826));
+    box-shadow: 1px 1px rgba(0, 0, 0, 0.5);
   }
   
   .black::before {
     background: linear-gradient(to top left, rgba(0, 0, 0, 1), rgba(167, 167, 167, 0.826));
+    box-shadow: 1px 1px rgba(0, 0, 0, 0.5);
   }
   
   
@@ -648,10 +768,6 @@ body {
       animation-fill-mode: forwards;
     }
   
-    .fade-in-out.hidden3 {
-      opacity: .75;
-      font-size: .93rem !important;
-    }
   
   
      /* Win display styles */
@@ -791,18 +907,18 @@ body {
     margin: 0 5px;
     }
     .parity-streaks {
-      background-color:#005a00;
+      background-color:rgba(94, 255, 94, 0.2);
     }
-    #number-streaks {
+    /* #number-streaks {
       background-color: rgb(0, 100, 0) ;
   
     }
     .number-streaks {
       border-radius: 5px;
-    }
+    } */
 
   .color-streaks {
-    background-color:#005a00;
+    background-color:rgba(94, 255, 94, 0.2);
   }
   
   
@@ -842,49 +958,53 @@ body {
     display: none;
   }
   #even-board {
-    font-family: cursive;
+    font-family: roboto;
     text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5);
     font-weight: 700;
     font-size: 1.75rem;
     border-radius: 10px 10px 50px 10px;
     color: rgb(214, 246, 215);
+    display: flex;
+    align-items: center;
+    justify-content: center;
   
   }
   #even-board::before {
-    content: "";
-    font-size: 20px;
-    color: #2980b9; /* Adjust color as needed */
-    position: absolute;
-    inset: 50%; /* Adjust for centering */
-    transform: translate(-50%, -50%);
+    content: "EVEN";
   }
   #odd-board {
-    font-family: cursive;
+    font-family: roboto;
     color: rgb(214, 246, 215);
     font-size: 1.75rem;
+    font-weight: 700;
     border-radius: 10px 10px 10px 50px;
     text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
   #odd-board::before {
-    content: "";
-    font-size: 20px;
-    color: #e74c3c; /* Adjust color as needed */
-    position: absolute;
-    inset: 50%; /* Adjust for centering */
-    transform: translate(-50%, -50%);
+    content: "ODD";
+
   }
   #black-board {
     border-radius: 10px 50px 10px 10px;
     font-family: cursive;
-  
   }
   #black-board::before {
-    content: "⚫️";
-    width: 10%;
-    height: 10%;
+    content: "\20BF";
+    text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    width: 90%;
+    height: 90%;
     position: absolute;
-    inset: 45%; /* Adjusted for better centering */
-    border-radius: 50%;
+    background: linear-gradient(to bottom right, rgba(75, 75, 75, 0.99) 10%, rgba(0, 0, 0, 0.99) 90%);
+    box-shadow: inset 1px 1px 5px rgba(0, 0, 0, 0.1);
+    inset: 5%; /* Adjusted for better centering */
+    border-radius: 10px 50px 10px 10px;
   }
   
   #red-board {
@@ -892,14 +1012,19 @@ body {
     font-family: cursive;
   }
   #red-board::before {
-    content: "♦️";
+    content: "\20BF";
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5);
     font-size: 2rem;
-    color: red;
-    width: 10%;
-    height: 10%;
+    width: 90%;
+    height: 90%;
     position: absolute;
-    inset: 45%; /* Adjusted for better centering */
-    border-radius: 50%;
+    background: linear-gradient(to bottom right, rgba(255, 75, 75, 0.9) 10%, rgba(255, 0, 0, 0.85) 90%);
+    box-shadow: inset 1px 1px 5px rgba(0, 0, 0, 0.1);
+    inset: 5%; /* Adjusted for better centering */
+    border-radius: 50px 10px 10px 10px;
   }
   
   @keyframes rolling {
