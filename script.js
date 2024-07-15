@@ -428,8 +428,16 @@ rollIndicator.classList.add('rolling');
       rollIndicator.classList.remove('rolling');
       rollIndicator.classList.add('active');
       if (Array.isArray(receipt.events.Result)) {
-       let target = rollAnimation(receipt.events.Result[0].returnValues[3]);
+        let intervalId = setInterval(() => {
+          rollDiceToNumber(parseInt(receipt.events.Result[0].returnValues[3]));
+      }, 1000);
+      setTimeout(() => {
+          clearInterval(intervalId);
+      }, 1000);
+      setTimeout(() => {
+        let target = rollAnimation(receipt.events.Result[0].returnValues[3]);
         unRollAnimation(target);
+      }, 1500)
         receipt.events.Result.forEach((event) => {
           const returns = event.returnValues;
           console.log(`Winning number: ${returns[3]}`);
@@ -451,8 +459,16 @@ rollIndicator.classList.add('rolling');
       } else {
         const returns = receipt.events.Result.returnValues;
         console.log(`Winning number: ${returns[3]}`);
+        let intervalId = setInterval(() => {
+          rollDiceToNumber(parseInt(returns[3]));
+      }, 1000);
+      setTimeout(() => {
+          clearInterval(intervalId);
+      }, 1000);
+      setTimeout(() => {
         let target = rollAnimation(returns[3]);
         unRollAnimation(target);
+      }, 1500)
         totalProfitForRound += parseFloat(web3.utils.fromWei(returns[5]));
 
         // Check if receipt.events.FeeDistributed exists and is an array
@@ -472,13 +488,13 @@ rollIndicator.classList.add('rolling');
       totalProfitForRound += bonuses;
       if (totalBetAmountsInMatic > totalProfitForRound) {
         netProfitForRound = totalBetAmountsInMatic - totalProfitForRound;
-        setTimeout(() => { lossAnimation(netProfitForRound)}, 5050);
+        setTimeout(() => { lossAnimation(netProfitForRound)}, 7500);
       } else if (totalBetAmountsInMatic < totalProfitForRound) {
         netProfitForRound = totalProfitForRound - totalBetAmountsInMatic;
-        setTimeout(() => {winAnimation(netProfitForRound)}, 5050);
+        setTimeout(() => {winAnimation(netProfitForRound)}, 7500);
         dealWinningChips(netProfitForRound, bets);
       } else {
-        setTimeout(() => {breakEvenAnimation()}, 5050);
+        setTimeout(() => {breakEvenAnimation()}, 7500);
         dealWinningChips(netProfitForRound, bets, receipt);
       }
 
@@ -1017,4 +1033,155 @@ const decreaseAnimation = () => {
       balance.classList.remove('increase');
     }, 250)
 }
+
+
+
+
+
+
+
+// Initialize Three.js components
+var scene = new THREE.Scene();
+var camera = new THREE.PerspectiveCamera(100, window.innerWidth / window.innerHeight, 0.1, 1000);
+var renderer = new THREE.WebGLRenderer({ alpha: true });
+updateRendererSize(); // Call initially and on window resize
+function updateRendererSize() {
+    var width = window.innerWidth * 1;
+    var height = window.innerHeight * 1;
+    renderer.setSize(width, height);
+    camera.aspect = width / height;
+    camera.updateProjectionMatrix();
+}
+
+document.body.appendChild(renderer.domElement);
+
+// Define boundaries (example)
+var minX = -1;
+var maxX = 1;
+var minY = -1;
+var maxY = 1;
+
+// Add lights
+var ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+scene.add(ambientLight);
+
+var directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
+directionalLight.position.set(1, 1, 1).normalize();
+scene.add(directionalLight);
+
+// Setup camera position
+camera.position.z = 5;
+
+// Initialize Cannon.js physics
+var world = new CANNON.World();
+world.gravity.set(0, 0, -50); // gravity in m/s²
+
+// Create a ground plane
+var groundShape = new CANNON.Plane();
+var groundBody = new CANNON.Body({ mass: 0 });
+groundBody.addShape(groundShape);
+world.addBody(groundBody);
+
+// Function to roll dice to a specific number
+function rollDiceToNumber(number) {
+    var impulseForce = 10; // Adjust the impulse force as needed
+
+    // Apply an impulse to roll the dice
+    var impulse = new CANNON.Vec3(0, 0, impulseForce);
+    diceBody.applyLocalImpulse(impulse, new CANNON.Vec3());
+
+    // Set the target rotation based on the face number
+    var targetRotation = new THREE.Quaternion();
+    switch (number) {
+        case 1:
+            targetRotation.setFromAxisAngle(new THREE.Vector3(2, 0, 0), Math.PI); // 1
+            break;
+        case 2:
+            targetRotation.setFromAxisAngle(new THREE.Vector3(0, 1, 2), -Math.PI / 2);
+            break;
+        case 3:
+            targetRotation.setFromAxisAngle(new THREE.Vector3(1, 1, 1), Math.PI); // 3
+            break;
+        case 4:
+            targetRotation.setFromAxisAngle(new THREE.Vector3(1, 2, 0), Math.PI); // 4
+            break;
+        case 5:
+            targetRotation.setFromAxisAngle(new THREE.Vector3(0, 1, 2), Math.PI / 2); // 5
+            break;
+        case 6:
+            targetRotation.setFromAxisAngle(new THREE.Vector3(2, 2, 0), Math.PI);
+            break;
+        default:
+            console.error("Invalid number for dice face.");
+            return;
+    }
+    diceBody.quaternion.copy(targetRotation);
+}
+
+// Load dice model
+var diceBody;
+var diceModel;
+var loader = new THREE.GLTFLoader();
+loader.load('models/dice.glb', function (gltf) {
+    diceModel = gltf.scene;
+    diceModel.position.set(0, 0, 1); // adjust position as needed
+    scene.add(diceModel);
+
+    // Create Cannon.js body for the dice
+    var diceShape = new CANNON.Box(new CANNON.Vec3(0.25, 0.25, 0.25)); // adjust size according to your dice model
+    diceBody = new CANNON.Body({ mass: 2 });
+    diceBody.addShape(diceShape);
+    diceBody.position.copy(diceModel.position);
+    world.addBody(diceBody);
+
+    // Update dice model position and rotation based on physics simulation
+    function updateDiceModel() {
+        diceModel.position.copy(diceBody.position);
+        diceModel.quaternion.copy(diceBody.quaternion);
+    }
+
+    // Handle mouse click to roll the dice
+    var raycaster = new THREE.Raycaster();
+    var mouse = new THREE.Vector2();
+
+
+
+    // Render loop
+    function render() {
+        requestAnimationFrame(render);
+
+        // Update physics
+        world.step(1 / 60);
+
+        // Update dice model position based on physics
+        updateDiceModel();
+
+        // Check boundaries and adjust position
+        var pos = diceBody.position;
+        if (pos.x < minX) {
+            pos.x = minX;
+            diceBody.velocity.x *= -0.5; // Bounce back with reduced velocity
+        }
+        if (pos.x > maxX) {
+            pos.x = maxX;
+            diceBody.velocity.x *= -0.5;
+        }
+        if (pos.y < minY) {
+            pos.y = minY;
+            diceBody.velocity.y *= -0.5;
+        }
+        if (pos.y > maxY) {
+            pos.y = maxY;
+            diceBody.velocity.y *= -0.5;
+        }
+
+        renderer.render(scene, camera);
+    }
+
+    render(); // Start the rendering loop
+});
+
+// Update renderer size on window resize
+window.addEventListener('resize', updateRendererSize);
+
 // Huge problem in fetching number history for the first round of ebery batch... it shows the second rounds number 
