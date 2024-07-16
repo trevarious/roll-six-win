@@ -78,7 +78,7 @@ body {
     color: red;
     font-weight: bold;
     opacity: 0;
-    transition: font-size 2.5s, opacity 2.5s;
+    transition: font-size 3s, opacity 3s;
     z-index: 1;
   }
   #loseMessage.show {
@@ -94,7 +94,7 @@ body {
     color: rgb(26, 255, 0);
     font-weight: bold;
     opacity: 0;
-    transition: font-size 2.5s, opacity 2.5s;
+    transition: font-size 3s, opacity 3s;
     z-index: 1;
   }
   
@@ -111,7 +111,7 @@ body {
     color: rgb(255, 255, 255);
     font-weight: bold;
     opacity: 0;
-    transition: font-size 2.5s, opacity 2.5s;
+    transition: font-size 3s, opacity 3s;
     z-index: 1;
   }
   

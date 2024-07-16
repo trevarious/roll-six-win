@@ -410,7 +410,7 @@ rollIndicator.classList.add('rolling');
     const receipt = await contract.methods.play(bets).send({ from: userAccount });
     console.log("Bets placed successfully");
     console.log(receipt);
-
+    diceModel.visible = true;
     if (receipt.events && receipt.events.Result) {
       if(receipt.events.BonusPaid) {
         if(Array.isArray(receipt.events.BonusPaid)) {
@@ -428,16 +428,16 @@ rollIndicator.classList.add('rolling');
       rollIndicator.classList.remove('rolling');
       rollIndicator.classList.add('active');
       if (Array.isArray(receipt.events.Result)) {
-        let intervalId = setInterval(() => {
-          rollDiceToNumber(parseInt(receipt.events.Result[0].returnValues[3]));
-      }, 1000);
+          let intervalId = setInterval(() => {
+            rollDiceToNumber(parseInt(receipt.events.Result[0].returnValues[3]));
+        }, 1000);
       setTimeout(() => {
           clearInterval(intervalId);
       }, 1000);
       setTimeout(() => {
         let target = rollAnimation(receipt.events.Result[0].returnValues[3]);
         unRollAnimation(target);
-      }, 1500)
+      }, 300)
         receipt.events.Result.forEach((event) => {
           const returns = event.returnValues;
           console.log(`Winning number: ${returns[3]}`);
@@ -468,7 +468,7 @@ rollIndicator.classList.add('rolling');
       setTimeout(() => {
         let target = rollAnimation(returns[3]);
         unRollAnimation(target);
-      }, 1500)
+      }, 500)
         totalProfitForRound += parseFloat(web3.utils.fromWei(returns[5]));
 
         // Check if receipt.events.FeeDistributed exists and is an array
@@ -488,14 +488,14 @@ rollIndicator.classList.add('rolling');
       totalProfitForRound += bonuses;
       if (totalBetAmountsInMatic > totalProfitForRound) {
         netProfitForRound = totalBetAmountsInMatic - totalProfitForRound;
-        setTimeout(() => { lossAnimation(netProfitForRound)}, 7500);
+        setTimeout(() => { lossAnimation(netProfitForRound)}, 5500);
       } else if (totalBetAmountsInMatic < totalProfitForRound) {
         netProfitForRound = totalProfitForRound - totalBetAmountsInMatic;
-        setTimeout(() => {winAnimation(netProfitForRound)}, 7500);
-        dealWinningChips(netProfitForRound, bets);
-      } else {
-        setTimeout(() => {breakEvenAnimation()}, 7500);
+        setTimeout(() => {winAnimation(netProfitForRound)}, 5500);
         dealWinningChips(netProfitForRound, bets, receipt);
+      } else {
+        setTimeout(() => {breakEvenAnimation()}, 5500);
+        dealWinningChips(netProfitForRound, bets);
       }
 
     } else {
@@ -510,8 +510,9 @@ rollIndicator.classList.add('rolling');
       chips.forEach(chip => chip.remove());
     });
     document.body.classList.remove('disable-document');
+    diceModel.visible = false;
 
-    }, 10000);
+    }, 14500);
     bets.length = 0;
     let updatedTotalBetAmount = calculateTotalBetAmount();
     let updatedTotalBetAmountInMatic = parseFloat(web3.utils.fromWei(updatedTotalBetAmount.toString()));
@@ -520,7 +521,7 @@ rollIndicator.classList.add('rolling');
       updateBetDisplay(updatedTotalBetAmountInMatic);
       updateColorMapping();
       fetchAndUpdateConsecutiveWins();
-    }, 9000);
+    }, 12000);
   } catch (error) {
     console.error("Error placing bets:", error);
     alert("Error placing bets: " + error.message);
@@ -533,6 +534,7 @@ rollIndicator.classList.add('rolling');
       chips.forEach(chip => chip.remove());
     });
     bets.length = 0;
+    diceModel.visible = false;
     // updateStats();
     setTimeout(() => {
       totalBetAmount.textContent = 0;
@@ -679,67 +681,99 @@ const createChipElement = (value) => {
 const dealWinningChips = (netProfitForRound, bets, receipt) => {
   const chipValues = [1, 0.5, 0.25, 0.1]; // Define chip values in descending order
   let remainingProfit = netProfitForRound;
-  // if (receipt.events && receipt.events.Result) {
-  //   if(receipt.events.BonusPaid) {
-  //     if(Array.isArray(receipt.events.BonusPaid)) {
-  //       for(let i = 0; i < receipt.events.BonusPaid.length; i ++) {
-  //         bonuses += parseFloat(web3.utils.fromWei(receipt.events.BonusPaid[i].returnValues[2]));
-  //       }
-  //       console.log(`Bonus paid: ${bonuses}`);
-  //     } else {
-  //       bonuses += parseFloat(web3.utils.fromWei(receipt.events.BonusPaid.returnValues[2]));
-  //       console.log(`Bonus paid: ${bonuses}`);
-  //     }
-  //   } else {
-  //     console.log('no bonuses to pay');
-  //   }
-  // }
+
   chipValues.forEach(value => {
     const numberOfChips = Math.floor(remainingProfit / value);
     remainingProfit -= numberOfChips * value;
 
     for (let i = 0; i < numberOfChips; i++) {
-      // Create chip element (assuming createChipElement exists and works correctly)
       const chip = createChipElement(value);
 
-      // Apply random transformations
       let randomYTranslate = Math.floor(Math.random() * 61) - 10;
       let randomXTranslate = Math.floor(Math.random() * 101) - 50;
       let randomRotation = Math.floor(Math.random() * 45);
       chip.style.transform = `translateY(${randomYTranslate}px) translateX(${randomXTranslate}px) rotate(${randomRotation}deg)`;
 
-      // Append chip to the correct board based on betType and guess
-      const boards = document.querySelectorAll('.betting-board');
+      // Determine where to place the chip based on the winning bets
       bets.forEach(bet => {
-        if (bet.betType === 1) {
-          if (bet.guess === 1) {
-            chip.classList.remove('dragging');
-            chip.classList.add('placed');
-            boards[1].appendChild(chip);
-            console.log(`Chip dealt: ${chip}`);
-          } else {
-            chip.classList.remove('dragging');
-            chip.classList.add('placed');
-            boards[0].appendChild(chip);
-            console.log(`Chip dealt: ${chip}`);
-          }
-        } else if (bet.betType === 2) {
-          if (bet.guess === 1) {
-            chip.classList.remove('dragging');
-            chip.classList.add('placed');
-            boards[9].appendChild(chip);
-            console.log(`Chip dealt: ${chip}`);
-          } else {
-            chip.classList.remove('dragging');
-            chip.classList.add('placed');
-            boards[8].appendChild(chip);
-            console.log(`Chip dealt: ${chip}`);
+        // Check if this bet is a winning bet (based on receipt or other criteria)
+        if (isWinningBet(bet, receipt)) {
+          switch (bet.betType) {
+            case 0:
+              switch (bet.guess) {
+                case 1:
+                  placeChipOnBoard(chip, boards[2]);
+                  break;
+                case 2:
+                  placeChipOnBoard(chip, boards[3]);
+                  break;
+                case 3:
+                  placeChipOnBoard(chip, boards[4]);
+                  break;
+                case 4:
+                  placeChipOnBoard(chip, boards[5]);
+                  break;
+                case 5:
+                  placeChipOnBoard(chip, boards[6]);
+                  break;
+                case 6:
+                  placeChipOnBoard(chip, boards[7]);
+                  break;
+                default:
+                  break;
+              }
+              break;
+            case 1:
+              switch (bet.guess) {
+                case 1:
+                  placeChipOnBoard(chip, boards[1]);
+                  break;
+                case 2:
+                  placeChipOnBoard(chip, boards[0]);
+                  break;
+                default:
+                  break;
+              }
+              break;
+            case 2:
+              switch (bet.guess) {
+                case 1:
+                  placeChipOnBoard(chip, boards[9]);
+                  break;
+                case 2:
+                  placeChipOnBoard(chip, boards[8]);
+                  break;
+                default:
+                  break;
+              }
+              break;
+            default:
+              break;
           }
         }
       });
     }
   });
 };
+
+// Helper function to determine if a bet is a winning bet
+const isWinningBet = (bet, receipt) => {
+  // Implement logic to check if the bet is a winning bet based on receipt or other criteria
+  // Example: Check receipt.events.Result or other properties in the receipt
+  return true; // Replace with your actual logic
+};
+
+// Function to place chip on a board
+const placeChipOnBoard = (chip, board) => {
+  chip.classList.remove('dragging');
+  chip.classList.add('placed');
+  const clonedChip = chip.cloneNode(true);
+  board.appendChild(clonedChip);
+  console.log(`Chip dealt: ${chip.value} on board: ${board.id}`);
+};
+
+
+
 
 // BOARD FUNCTIONALITY
 const boards = document.querySelectorAll('.betting-board');
@@ -829,14 +863,14 @@ const calculateTotalBetAmount = () => {
 const winAnimation = (amountWon) => {
   const rollIndicator = document.getElementById('roll-indicator');
   rollIndicator.classList.remove('active');
-  var duration = 2 * 1000;
+  var duration = 6 * 1000;
   var end = Date.now() + duration;
   let winMessage =  document.getElementById('winMessage')
-  winMessage.textContent = `WINNER! +${amountWon.toFixed(2)} MATIC`;
+  winMessage.textContent = `+${amountWon.toFixed(2)} MATIC`;
   winMessage.classList.add('show');
   setTimeout(() => {
     document.getElementById('winMessage').classList.remove('show');
-  }, 3000);
+  }, 6000);
   (function frame() {
     confetti({
       particleCount: 5,
@@ -865,7 +899,7 @@ const lossAnimation = (amountLost) => {
     document.getElementById('lossParticles').style.opacity = '1';
   }, 1);
   let lossMessage = document.getElementById('loseMessage');
-  lossMessage.textContent = `YOU LOSE -${amountLost.toFixed(2)} MATIC`;
+  lossMessage.textContent = `-${amountLost.toFixed(2)} MATIC`;
   lossMessage.classList.add('show');
   particlesJS('lossParticles', {
     particles: {
@@ -873,38 +907,44 @@ const lossAnimation = (amountLost) => {
         value: 100
       },
       color: {
-        value: '#ff0000' // Red color for particles
+        value: ['#ff0000', '#ee0000', '#dd0000']
       },
       shape: {
         type: 'triangle',
         polygon: {
-          nb_sides: 3 // Triangle shape with 3 sides
-        }
+          nb_sides: 5 // Triangle shape with 3 sides
+        },
       },
       opacity: {
-        value: 0.9 // Opacity of particles
+        value: 0.25 // Opacity of particles
       },
       size: {
-        value: 5,
+        value: 9,
         random: true // Random size for particles
       },
       move: {
         direction: 'bottom', // Movement direction (bottom)
-        speed: 2, // Speed of particles
+        speed: 5, // Speed of particles
         out_mode: 'out' // Behavior when particles move out of canvas ('out' removes them)
       },
       line_linked: {
-        enable: false // Enable linking lines between particles
+        enable: true,
+        distance: 15,
+        color: '#00ffff',
+        opacity: 0.5,
+        width: 5
       }
     },
     interactivity: {
       detect_on: 'canvas',
       events: {
         onhover: {
-          enable: false // Disable hover interaction
+          enable: true,
+          mode: 'repulse'
         },
         onclick: {
-          enable: false // Disable click interaction
+          enable: true,
+          mode: 'push'
         }
       }
     },
@@ -913,13 +953,13 @@ const lossAnimation = (amountLost) => {
   
   setTimeout(() => {
     document.getElementById('lossParticles').classList.add('hidden');
-  }, 5000);
+  }, 6000);
   setTimeout(() => {
     document.getElementById('lossParticles').style.opacity = '0';
-  }, 4000);
+  }, 5000);
   setTimeout(() => {
     lossMessage.classList.remove('show');
-  }, 2500);
+  }, 3000);
 }
 const breakEvenAnimation = () => {
   const rollIndicator = document.getElementById('roll-indicator');
@@ -934,7 +974,7 @@ const breakEvenAnimation = () => {
   lossMessage.classList.add('show');
   particlesJS('breakEven', {
     particles: {
-      number: { value: 50 },
+      number: { value: 100 },
       color: { value: '#ffffff' },
       shape: {
         type: 'circle',
@@ -947,7 +987,13 @@ const breakEvenAnimation = () => {
         random: true,
         out_mode: 'out', 
       },
-      line_linked: { enable: false }, 
+      line_linked: {
+        enable: true,
+        distance: 30,
+        color: '#00ffff',
+        opacity: 0.5,
+        width: 5
+      }
     },
     interactivity: {
       detect_on: 'canvas',
@@ -961,13 +1007,13 @@ const breakEvenAnimation = () => {
   setTimeout(() => {
     document.getElementById('breakEven').classList.add('hidden');
     lossMessage.classList.remove('show');
-  }, 5000);
+  }, 7000);
   setTimeout(() => {    
     document.getElementById('breakEven').style.opacity = '0';
-  }, 4000);
+  }, 6000);
   setTimeout(() => {
     lossMessage.classList.remove('show');
-  }, 2500);
+  }, 3000);
 
 }
 const rollAnimation = (winningNumber) =>  {
@@ -993,7 +1039,7 @@ const rollAnimation = (winningNumber) =>  {
       board.classList.add('active');
     }
           })
-  }, 5000)
+  }, 2000)
   return targetOffset;
 }
 const unRollAnimation = (target) =>  {
@@ -1125,6 +1171,7 @@ var loader = new THREE.GLTFLoader();
 loader.load('models/dice.glb', function (gltf) {
     diceModel = gltf.scene;
     diceModel.position.set(0, 0, 1); // adjust position as needed
+    diceModel.visible = false;
     scene.add(diceModel);
 
     // Create Cannon.js body for the dice
