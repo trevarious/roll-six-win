@@ -1,6 +1,5 @@
  /*
       TODO 07/17/24: 
-        - Chip border, 8 sides
         - Chip limit, 100 chips
         - Bonus distribution for winning chips
         - Update balance when rejecting bet transaction
@@ -50,10 +49,11 @@ const initialize = async () => {
         updateColorMapping();
         fetchAndUpdateConsecutiveWins();
         dealChips();
-        const canvasElements = document.getElementsByName('canvas');
-        canvasElements.forEach(canvas => {
-            canvas.classList.add('active');
-        });
+        const canvasElements = document.querySelector('.dice-canvas');
+        canvasElements.style.opacity = `1`;
+        setTimeout(() => {
+          canvasElements.style.opacity = ``;
+        }, 3000);
             } catch (error) {
         console.log(error);
         alert("There was an error connecting wallet");
@@ -237,15 +237,13 @@ const updateBoardMultiplier = (elementclass,multipliedAmount) => {
         element.textContent =  `${multipliedAmount}x`;
         board.appendChild(element);
       } else if(elementclass == '.number-streaks') {
+        if(multipliedAmount > 2){
         const element = document.createElement('div');
         element.classList.add('win-multiplier');
-        element.style.color = 'white';
-        element.style.position = 'absolute';
-        element.style.top = '25%';
-        if(multipliedAmount > 2 ) {
-          element.textContent =  `${multipliedAmount == 3 ? .1 : multipliedAmount == 4 ? .5 : multipliedAmount == 5 ? .5 : multipliedAmount == 6 ? 1 : ''}%`;
-        }
+        element.style.top = '30%';
+        element.textContent =  `${multipliedAmount == 3 ? .1 : multipliedAmount == 4 ? .5 : multipliedAmount == 5 ? .5 : multipliedAmount == 6 ? 1 : ''}%`;
         board.appendChild(element);
+        }
       } else if( elementclass == '.color-streaks') {
         const element = document.createElement('div');
         element.classList.add('win-multiplier');
@@ -288,9 +286,13 @@ const dealChips = async () => {
           <div class="center-circle"></div>
           <div class="center-circle value">${value}</div>
           <div class="l-axis ${value == 0.1 ? 'tenth' : value == 0.25 ? 'twentyFifth' : value == 0.5 ? 'fiftieth' : value == 1 ? 'one' : ''}"></div>
+          <div class="lh-axis ${value == 0.1 ? 'tenth' : value == 0.25 ? 'twentyFifth' : value == 0.5 ? 'fiftieth' : value == 1 ? 'one' : ''}"></div>
           <div class="r-axis ${value == 0.1 ? 'tenth' : value == 0.25 ? 'twentyFifth' : value == 0.5 ? 'fiftieth' : value == 1 ? 'one' : ''}"></div>
+          <div class="rh-axis ${value == 0.1 ? 'tenth' : value == 0.25 ? 'twentyFifth' : value == 0.5 ? 'fiftieth' : value == 1 ? 'one' : ''}"></div>
           <div class="t-axis ${value == 0.1 ? 'tenth' : value == 0.25 ? 'twentyFifth' : value == 0.5 ? 'fiftieth' : value == 1 ? 'one' : ''}"></div>
+          <div class="th-axis ${value == 0.1 ? 'tenth' : value == 0.25 ? 'twentyFifth' : value == 0.5 ? 'fiftieth' : value == 1 ? 'one' : ''}"></div>
           <div class="b-axis ${value == 0.1 ? 'tenth' : value == 0.25 ? 'twentyFifth' : value == 0.5 ? 'fiftieth' : value == 1 ? 'one' : ''}"></div>
+          <div class="bh-axis ${value == 0.1 ? 'tenth' : value == 0.25 ? 'twentyFifth' : value == 0.5 ? 'fiftieth' : value == 1 ? 'one' : ''}"></div>
         `;
         switch (value) {
           case 0.1:
@@ -400,7 +402,10 @@ rollIndicator.classList.add('rolling');
     const receipt = await contract.methods.play(bets).send({ from: userAccount });
     console.log("Bets placed successfully");
     console.log(receipt);
-    diceModel.visible = true;
+    const canvasElements = document.querySelector('.dice-canvas');
+    canvasElements.classList.add('active');
+    var randomNumber = Math.floor(Math.random() * (187 - 67 + 1)) + 67;
+    canvasElements.style.right = `${randomNumber}px`;
     if (receipt.events && receipt.events.Result) {
       if(receipt.events.BonusPaid) {
         if(Array.isArray(receipt.events.BonusPaid)) {
@@ -498,7 +503,9 @@ rollIndicator.classList.add('rolling');
       chips.forEach(chip => chip.remove());
     });
     document.body.classList.remove('disable-document');
-    // diceModel.visible = false;
+    canvasElements.classList.remove('active');
+    canvasElements.style.right = ``;
+    setTimeout(() => {resetScene();}, 850);
     }, 14500);
     bets.length = 0;
     let updatedTotalBetAmount = calculateTotalBetAmount();
@@ -513,6 +520,8 @@ rollIndicator.classList.add('rolling');
     alert("Error placing bets: " + error.message);
     rollIndicator.classList.remove('rolling');
     document.body.classList.remove('disable-document');
+    canvasElements.style.right = ``;
+    canvasElements.classList.remove('active');
     const boards = document.querySelectorAll('.betting-board');
     boards.forEach(board => {
       const chips = board.querySelectorAll('.placed');
@@ -635,12 +644,16 @@ const createChipElement = (value) => {
   chip.setAttribute('data-value', value);
   chip.classList.add(`${value == 0.1 ? 'chip-0_1' : value == 0.25 ? 'chip-0_25' : value == 0.5 ? 'chip-0_5' : value == 1 ? 'chip-1' : '' }`);
   chip.innerHTML = `
-  <div class="center-circle"></div>
-  <div class="center-circle value">${value}</div>
-  <div class="l-axis ${value == 0.1 ? 'tenth' : value == 0.25 ? 'twentyFifth' : value == 0.5 ? 'fiftieth' : value == 1 ? 'one' : ''}"></div>
-  <div class="r-axis ${value == 0.1 ? 'tenth' : value == 0.25 ? 'twentyFifth' : value == 0.5 ? 'fiftieth' : value == 1 ? 'one' : ''}"></div>
-  <div class="t-axis ${value == 0.1 ? 'tenth' : value == 0.25 ? 'twentyFifth' : value == 0.5 ? 'fiftieth' : value == 1 ? 'one' : ''}"></div>
-  <div class="b-axis ${value == 0.1 ? 'tenth' : value == 0.25 ? 'twentyFifth' : value == 0.5 ? 'fiftieth' : value == 1 ? 'one' : ''}"></div>
+          <div class="center-circle"></div>
+          <div class="center-circle value">${value}</div>
+          <div class="l-axis ${value == 0.1 ? 'tenth' : value == 0.25 ? 'twentyFifth' : value == 0.5 ? 'fiftieth' : value == 1 ? 'one' : ''}"></div>
+          <div class="lh-axis ${value == 0.1 ? 'tenth' : value == 0.25 ? 'twentyFifth' : value == 0.5 ? 'fiftieth' : value == 1 ? 'one' : ''}"></div>
+          <div class="r-axis ${value == 0.1 ? 'tenth' : value == 0.25 ? 'twentyFifth' : value == 0.5 ? 'fiftieth' : value == 1 ? 'one' : ''}"></div>
+          <div class="rh-axis ${value == 0.1 ? 'tenth' : value == 0.25 ? 'twentyFifth' : value == 0.5 ? 'fiftieth' : value == 1 ? 'one' : ''}"></div>
+          <div class="t-axis ${value == 0.1 ? 'tenth' : value == 0.25 ? 'twentyFifth' : value == 0.5 ? 'fiftieth' : value == 1 ? 'one' : ''}"></div>
+          <div class="th-axis ${value == 0.1 ? 'tenth' : value == 0.25 ? 'twentyFifth' : value == 0.5 ? 'fiftieth' : value == 1 ? 'one' : ''}"></div>
+          <div class="b-axis ${value == 0.1 ? 'tenth' : value == 0.25 ? 'twentyFifth' : value == 0.5 ? 'fiftieth' : value == 1 ? 'one' : ''}"></div>
+          <div class="bh-axis ${value == 0.1 ? 'tenth' : value == 0.25 ? 'twentyFifth' : value == 0.5 ? 'fiftieth' : value == 1 ? 'one' : ''}"></div>
 `;
   chip.addEventListener('dragstart', dragStart);
   chip.addEventListener('dragend', dragEnd);
@@ -649,17 +662,32 @@ const createChipElement = (value) => {
 const placeChipOnBoard = (chip, board) => {
   chip.classList.remove('dragging');
   chip.classList.add('placed');
+  
   const clonedChip = chip.cloneNode(true);
-  const offsetTPos = Math.floor(Math.random() * (101 - 50)) + 50;
-  const offsetLPos = Math.floor(Math.random() * (101 - 50)) + 50;
-  const offsetBPos = Math.floor(Math.random() * (101 - 50)) + 50;
-  const offsetRPos = Math.floor(Math.random() * (101 - 50)) + 50;
-  clonedChip.style.top = `${clonedChip.offsetTop + offsetTPos}px`;
-  clonedChip.style.left = `${clonedChip.offsetLeft + offsetLPos}px`;
-  clonedChip.style.bottom = `${clonedChip.offsetTop + offsetBPos}px`;
-  clonedChip.style.right = `${clonedChip.offsetLeft + offsetRPos}px`;
+  
+  // Get the dimensions of the board
+  const boardWidth = board.clientWidth;
+  const boardHeight = board.clientHeight;
+  
+  // Calculate random positions within the board
+  const topPos = Math.random() * (boardHeight - (clonedChip.offsetHeight + 50));
+  const leftPos = Math.random() * (boardWidth - (clonedChip.offsetWidth + 50));
+  
+  // Set the position styles
+  clonedChip.style.top = `${topPos}px`;
+  clonedChip.style.left = `${leftPos}px`;
+  
+  // Optionally, randomize bottom and right positions
+  // to avoid always having top-left alignment
+  const bottomPos = Math.random() * (boardHeight - (clonedChip.offsetHeight + 50));
+  const rightPos = Math.random() * (boardWidth - (clonedChip.offsetWidth + 50));
+  
+  clonedChip.style.bottom = `${bottomPos}px`;
+  clonedChip.style.right = `${rightPos}px`;
+  
   board.appendChild(clonedChip);
-  console.log(`Chip position on ${board.id}: top=${clonedChip.offsetTop}, left=${clonedChip.offsetLeft}`);
+  
+  console.log(`Chip position on ${board.id}: top=${topPos}, left=${leftPos}`);
 };
 
 
@@ -910,6 +938,16 @@ const rollAnimation = (winningNumber) =>  {
   setTimeout(() => {
     numberedBoards.forEach(board => {
       if (board.getAttribute('data-value') === winningNumber) {
+        setTimeout(() => {
+          const chipsOnBoard = board.querySelectorAll('.chip');
+          chipsOnBoard.forEach(chip => {
+            console.log("attribute of chip: " + chip.getAttribute('data-value'));
+            let value = chip.getAttribute('data-value');
+            winningChipClone = createChipElement(value);
+            winningChipClone.style.boxShadow = '1px 1px 15px yellow';
+            placeChipOnBoard(winningChipClone, board);
+          })
+        }, 750);
         if(board.classList.contains('red')){
           bettingBoard[9].style.boxShadow = '1px 1px 1px 5px gold';
           setTimeout(() => {
@@ -918,10 +956,11 @@ const rollAnimation = (winningNumber) =>  {
               console.log("attribute of chip: " + chip.getAttribute('data-value'));
               let value = chip.getAttribute('data-value');
               winningChipClone = createChipElement(value);
+              winningChipClone.style.boxShadow = '1px 1px 15px yellow';
               placeChipOnBoard(winningChipClone, bettingBoard[9]);
             })
             
-          }, 500);
+          }, 750);
         } else if(board.classList.contains('black')) {
           bettingBoard[8].style.boxShadow = '1px 1px 1px 5px gold';
           const chipsOnBoard = bettingBoard[8].querySelectorAll('.chip');
@@ -930,10 +969,11 @@ const rollAnimation = (winningNumber) =>  {
               console.log("attribute of chip: " + chip.getAttribute('data-value'));
               let value = chip.getAttribute('data-value');
               winningChipClone = createChipElement(value);
+              winningChipClone.style.boxShadow = '1px 1px 15px yellow';
               placeChipOnBoard(winningChipClone, bettingBoard[8]);
             });
             
-          }, 500);
+          }, 750);
         }
         if(winningNumber % 2 == 0 ) {
           bettingBoard[0].style.boxShadow = '1px 1px 1px 5px gold';
@@ -943,9 +983,10 @@ const rollAnimation = (winningNumber) =>  {
               console.log("attribute of chip: " + chip.getAttribute('data-value'));
               let value = chip.getAttribute('data-value');
               winningChipClone = createChipElement(value);
+              winningChipClone.style.boxShadow = '1px 1px 15px yellow';
               placeChipOnBoard(winningChipClone, bettingBoard[0]);
             });
-          }, 500)
+          }, 750)
         } else if (winningNumber % 2 !== 0) {
           bettingBoard[1].style.boxShadow = '1px 1px 1px 5px gold';
           setTimeout(() => {
@@ -954,9 +995,10 @@ const rollAnimation = (winningNumber) =>  {
               console.log("attribute of chip: " + chip.getAttribute('data-value'));
               let value = chip.getAttribute('data-value');
               winningChipClone = createChipElement(value);
+              winningChipClone.style.boxShadow = '1px 1px 15px yellow';
               placeChipOnBoard(winningChipClone, bettingBoard[1]);
             });
-          }, 500 );
+          }, 750 );
         }
       board.classList.add('active');
     }
@@ -1154,5 +1196,32 @@ loader.load('models/dice.glb', function (gltf) {
 
 // Update renderer size on window resize
 window.addEventListener('resize', updateRendererSize);
+function resetScene() {
+  // Remove existing dice model if it exists
+  if (diceModel) {
+      scene.remove(diceModel);
+      diceModel = null;
+  }
+  
+  // Remove existing dice physics body if it exists
+  if (diceBody) {
+      world.removeBody(diceBody);
+      diceBody = null;
+  }
+
+  // Reload dice model and physics body
+  loader.load('models/dice.glb', function (gltf) {
+      diceModel = gltf.scene;
+      diceModel.position.set(0, 0, 1); // adjust position as needed
+      scene.add(diceModel);
+
+      var diceShape = new CANNON.Box(new CANNON.Vec3(0.25, 0.25, 0.25)); // adjust size according to your dice model
+      diceBody = new CANNON.Body({ mass: 2 });
+      diceBody.addShape(diceShape);
+      diceBody.position.copy(diceModel.position);
+      world.addBody(diceBody);
+  });
+}
+
 
 // Huge problem in fetching number history for the first round of ebery batch... it shows the second rounds number 
