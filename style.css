@@ -19,10 +19,27 @@ body {
   }
   canvas {
     position: absolute;
+    width: 100% ;
+    height: auto ;
+    pointer-events: none;
+}
+.dice-canvas {
+    position: absolute;
     width: 100% !important;
     height: auto !important;
     pointer-events: none;
+    top: -100px;
+    right: -750px;
+    transform: scale(0.6); /* Use transform instead of scale */
+    transition: top 0.3s ease, right 0.3s ease, transform 0.3s ease; /* Add transition for smooth animation */
 }
+
+canvas.active {
+    top: 0 !important;
+    right: 0 !important;
+    transform: scale(0.9) !important;
+}
+
   .disable-document {
     user-select: none;
     pointer-events: none;
@@ -808,46 +825,54 @@ body {
   
     .win-multiplier {
       position: absolute;
-      display: flex;
+      display: flex !important;
+      align-items: center;
       justify-content: center;
-      align-content: center;
       top: 50%;
       right: 50%;
       bottom: 50%;
       left: 50%;
       scale: 1;
-      font-size: .95rem;
-      font-weight: 700;
+      font-size: 1.1rem !important;
+      font-weight: 700 !important;
+      font-family: 'Times New Roman', Times, serif;
       opacity: .75;
-      scale: 1;
-      animation: multiplier-animation 5s ease infinite;
+      animation: multiplier-animation 1.5s ease infinite;
       animation-fill-mode: forwards;
+      transition: opacity .25s, scale .25s, color .25s;
+      background: linear-gradient(to top left, rgb(187, 218, 73) 50%, rgb(225, 255, 0));
+      width: 35px;
+      height: 35px;
+      border-radius: 50%;
+      margin-left: -15px;
+      margin-top: -15px;
+      padding: 2px;
     }
     @keyframes multiplier-animation {
       0% {
         scale: 1;
-        opacity: .5;
-        color: rgb(192, 255, 203) ;
+        opacity: .74;
+        color: rgb(205, 0, 205) ;
       } 
       25% {
-        scale: 1.35;
-        opacity: 1;
-        color: rgb(0, 255, 0) ;
+        scale: 1.02;
+        opacity: .75;
+        color: rgb(180, 0, 180) ;
       }
       50% {
         scale: 1;
-        opacity: .5;
-        color: rgb(192, 255, 203);
+        opacity: .74;
+        color: rgb(205, 0, 205);
       }
       75% {
-        scale: .95;
-        opacity: .25;
-        color: rgb(152, 255, 169) ;
+        scale: .98;
+        opacity: .75;
+        color: rgb(225, 0, 225) ;
       }
       100% {
         scale: 1;
-        opacity: .5;
-        color: rgb(192, 255, 203);
+        opacity: .74;
+        color: rgb(205, 0, 205);
       }
   
     }
@@ -996,7 +1021,6 @@ body {
   }
   #black-board {
     border-radius: 10px 50px 10px 10px;
-    font-family: cursive;
   }
   #black-board::before {
     content: "\20BF";
@@ -1016,7 +1040,6 @@ body {
   
   #red-board {
     border-radius: 50px 10px 10px 10px;
-    font-family: cursive;
   }
   #red-board::before {
     content: "\20BF";

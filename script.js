@@ -1,4 +1,4 @@
-
+// !!!!! BALANCE DOESN'T UPDATE WHEN YOU REJECT A BET TRANSACTION    !!!!!!
 import { contractABI } from './abi.js';
 import { contractAddress } from './address.js'; 
 
@@ -45,6 +45,10 @@ const initialize = async () => {
         updateColorMapping();
         fetchAndUpdateConsecutiveWins();
         dealChips();
+        const canvasElements = document.getElementsByName('canvas');
+        canvasElements.forEach(canvas => {
+            canvas.classList.add('active');
+        });
             } catch (error) {
         console.log(error);
         alert("There was an error connecting wallet");
@@ -337,8 +341,6 @@ const dealChips = async () => {
 
         remainingBalance -= value;
         amountDistributed += value;
-        console.log("remaining balance: " + remainingBalance);
-        console.log("amount distributed: " + amountDistributed);
         if (remainingBalance < value) {
           break; // Exit the loop if remaining balance is less than the current chip value
         }
@@ -488,14 +490,22 @@ rollIndicator.classList.add('rolling');
       totalProfitForRound += bonuses;
       if (totalBetAmountsInMatic > totalProfitForRound) {
         netProfitForRound = totalBetAmountsInMatic - totalProfitForRound;
-        setTimeout(() => { lossAnimation(netProfitForRound)}, 5500);
+        setTimeout(() => { 
+          lossAnimation(netProfitForRound);
+          // dealWinningChips(receipt);
+        }, 5500);
+
       } else if (totalBetAmountsInMatic < totalProfitForRound) {
         netProfitForRound = totalProfitForRound - totalBetAmountsInMatic;
-        setTimeout(() => {winAnimation(netProfitForRound)}, 5500);
-        dealWinningChips(netProfitForRound, bets, receipt);
+        setTimeout(() => {
+          winAnimation(netProfitForRound);
+          // dealWinningChips(receipt);
+        }, 5500);
       } else {
-        setTimeout(() => {breakEvenAnimation()}, 5500);
-        dealWinningChips(netProfitForRound, bets);
+        setTimeout(() => {
+          breakEvenAnimation();
+          // dealWinningChips(receipt);
+        }, 5500);
       }
 
     } else {
@@ -510,7 +520,7 @@ rollIndicator.classList.add('rolling');
       chips.forEach(chip => chip.remove());
     });
     document.body.classList.remove('disable-document');
-    diceModel.visible = false;
+    // diceModel.visible = false;
 
     }, 14500);
     bets.length = 0;
@@ -534,7 +544,7 @@ rollIndicator.classList.add('rolling');
       chips.forEach(chip => chip.remove());
     });
     bets.length = 0;
-    diceModel.visible = false;
+    // diceModel.visible = false;
     // updateStats();
     setTimeout(() => {
       totalBetAmount.textContent = 0;
@@ -678,101 +688,160 @@ const createChipElement = (value) => {
   chip.addEventListener('dragend', dragEnd);
   return chip;
 }
-const dealWinningChips = (netProfitForRound, bets, receipt) => {
-  const chipValues = [1, 0.5, 0.25, 0.1]; // Define chip values in descending order
-  let remainingProfit = netProfitForRound;
+// const dealWinningChip = () => {
+// boards.forEach(board => {
 
-  chipValues.forEach(value => {
-    const numberOfChips = Math.floor(remainingProfit / value);
-    remainingProfit -= numberOfChips * value;
+// })
+// }
+// const dealWinningChips = receipt => {
+//   let colorBets = 0;
+//   let numberBets = 0;
+//   let parityBets = 0;
+  
+//   const results = Array.isArray(receipt.events.Result) ? receipt.events.Result : [receipt.events.Result];
+//   const betCountReceipt = Array.isArray(receipt.events.BetPlaced) ? receipt.events.BetPlaced : [receipt.events.BetPlaced];
+  
+//   betCountReceipt.forEach(receipt => {
+//     const betType = receipt.returnValues[2];
+    
+//     switch (betType) {
+//       case 0:
+//         numberBets++;
+//         break;
+//       case 1:
+//         parityBets++;
+//         break;
+//       case 2:
+//         colorBets++;
+//         break;
+//       default:
+//         console.error("Error finding valid bet type for bet counter. Invalid type:", typeof(betType)); 
+//     }
+    
+//     console.log(`Processed bet type ${betType}. Number bets: ${numberBets}, Parity bets: ${parityBets}, Color bets: ${colorBets}`);
+//   });
+  
+//   console.log(`Number of results: ${results.length}`);
 
-    for (let i = 0; i < numberOfChips; i++) {
-      const chip = createChipElement(value);
+//   results.forEach(result => {
+//     console.log(`Processing result:`, result);
 
-      let randomYTranslate = Math.floor(Math.random() * 61) - 10;
-      let randomXTranslate = Math.floor(Math.random() * 101) - 50;
-      let randomRotation = Math.floor(Math.random() * 45);
-      chip.style.transform = `translateY(${randomYTranslate}px) translateX(${randomXTranslate}px) rotate(${randomRotation}deg)`;
+//     const isWin = result.returnValues[4];
+//     const betType = parseInt(result.returnValues[1]);
+//     const guess = parseInt(result.returnValues[2]);
+//     const weiAmount = parseFloat(web3.utils.fromWei(result.returnValues[5]));
+//     const amountWon = weiAmount > 1 ? Math.floor(weiAmount) : weiAmount;
+//     let chipValue = betType == 0 ? (amountWon / numberBets) / 5 : betType == 1 ? (amountWon / parityBets) / 2 : (amountWon / colorBets) / 2;
+//     console.log(`isWin: ${isWin}, betType: ${betType}, guess: ${guess} chipValue: ${chipValue}`);
 
-      // Determine where to place the chip based on the winning bets
-      bets.forEach(bet => {
-        // Check if this bet is a winning bet (based on receipt or other criteria)
-        if (isWinningBet(bet, receipt)) {
-          switch (bet.betType) {
-            case 0:
-              switch (bet.guess) {
-                case 1:
-                  placeChipOnBoard(chip, boards[2]);
-                  break;
-                case 2:
-                  placeChipOnBoard(chip, boards[3]);
-                  break;
-                case 3:
-                  placeChipOnBoard(chip, boards[4]);
-                  break;
-                case 4:
-                  placeChipOnBoard(chip, boards[5]);
-                  break;
-                case 5:
-                  placeChipOnBoard(chip, boards[6]);
-                  break;
-                case 6:
-                  placeChipOnBoard(chip, boards[7]);
-                  break;
-                default:
-                  break;
-              }
-              break;
-            case 1:
-              switch (bet.guess) {
-                case 1:
-                  placeChipOnBoard(chip, boards[1]);
-                  break;
-                case 2:
-                  placeChipOnBoard(chip, boards[0]);
-                  break;
-                default:
-                  break;
-              }
-              break;
-            case 2:
-              switch (bet.guess) {
-                case 1:
-                  placeChipOnBoard(chip, boards[9]);
-                  break;
-                case 2:
-                  placeChipOnBoard(chip, boards[8]);
-                  break;
-                default:
-                  break;
-              }
-              break;
-            default:
-              break;
-          }
-        }
-      });
-    }
-  });
-};
+//     if (isWin) {
+//       console.log(`Winning result found for betType ${betType} and guess ${guess}`);
+//       const chip = createChipElement(chipValue);
+//       console.log(`Created chip with value ${chipValue}`);
 
-// Helper function to determine if a bet is a winning bet
-const isWinningBet = (bet, receipt) => {
-  // Implement logic to check if the bet is a winning bet based on receipt or other criteria
-  // Example: Check receipt.events.Result or other properties in the receipt
-  return true; // Replace with your actual logic
-};
+//       // Apply random transformations
+//       let randomYTranslate = Math.floor(Math.random() * 61) - 10;
+//       let randomXTranslate = Math.floor(Math.random() * 101) - 50;
+//       let randomRotation = Math.floor(Math.random() * 45);
+//       chip.style.transform = `translateY(${randomYTranslate}px) translateX(${randomXTranslate}px) rotate(${randomRotation}deg)`;
+//       console.log(`Applied styles: ${chip.style.transform}`);
 
-// Function to place chip on a board
+//       // Place the chip on the correct board based on betType and guess
+//       switch (betType) {
+//         case 0:
+//           switch (guess) {
+//             case 1:
+//               placeChipOnBoard(chip, boards[2]);
+//               console.log(`Winning chip placed on board 2`);
+//               break;
+//             case 2:
+//               placeChipOnBoard(chip, boards[3]);
+//               console.log(`Winning chip placed on board 3`);
+//               break;
+//             case 3:
+//               placeChipOnBoard(chip, boards[4]);
+//               console.log(`Winning chip placed on board 4`);
+//               break;
+//             case 4:
+//               placeChipOnBoard(chip, boards[5]);
+//               console.log(`Winning chip placed on board 5`);
+//               break;
+//             case 5:
+//               placeChipOnBoard(chip, boards[6]);
+//               console.log(`Winning chip placed on board 6`);
+//               break;
+//             case 6:
+//               placeChipOnBoard(chip, boards[7]);
+//               console.log(`Winning chip placed on board 7`);
+//               break;
+//             default:
+//               console.error(`Unexpected guess value for betType 0: ${guess}`);
+//               break;
+//           }
+//           break;
+//         case 1:
+//           switch (guess) {
+//             case 1:
+//               placeChipOnBoard(chip, boards[1]);
+//               console.log(`Winning chip placed on board 1`);
+//               break;
+//             case 2:
+//               placeChipOnBoard(chip, boards[0]);
+//               console.log(`Winning chip placed on board 0`);
+//               break;
+//             default:
+//               console.error(`Unexpected guess value for betType 1: ${guess}`);
+//               break;
+//           }
+//           break;
+//         case 2:
+//           switch (guess) {
+//             case 1:
+//               placeChipOnBoard(chip, boards[9]);
+//               console.log(`Winning chip placed on board 9`);
+//               break;
+//             case 2:
+//               placeChipOnBoard(chip, boards[8]);
+//               console.log(`Winning chip placed on board 8`);
+//               break;
+//             default:
+//               console.error(`Unexpected guess value for betType 2: ${guess}`);
+//               break;
+//           }
+//           break;
+//         default:
+//           console.error(`Unexpected betType: ${betType}`);
+//           break;
+//       }
+//     }
+//   });
+
+//   console.log("dealWinningChips function completed.");
+// };
+
+
 const placeChipOnBoard = (chip, board) => {
   chip.classList.remove('dragging');
   chip.classList.add('placed');
   const clonedChip = chip.cloneNode(true);
+  
+  // Calculate an offset based on the index of the chip within its parent's children
+  const index = Array.from(board.children).indexOf(chip);
+  const offsetTPos = Math.floor(Math.random() * (101 - 50)) + 50;
+  const offsetLPos = Math.floor(Math.random() * (101 - 50)) + 50;
+  const offsetBPos = Math.floor(Math.random() * (101 - 50)) + 50;
+  const offsetRPos = Math.floor(Math.random() * (101 - 50)) + 50;
+  
+  clonedChip.style.top = `${clonedChip.offsetTop + offsetTPos}px`;
+  clonedChip.style.left = `${clonedChip.offsetLeft + offsetLPos}px`;
+  clonedChip.style.bottom = `${clonedChip.offsetTop + offsetBPos}px`;
+  clonedChip.style.right = `${clonedChip.offsetLeft + offsetRPos}px`;
+
   board.appendChild(clonedChip);
-  console.log(`Chip dealt: ${chip.value} on board: ${board.id}`);
+
+  // Log the position of the cloned chip relative to its offset parent (the board)
+  console.log(`Chip position on ${board.id}: top=${clonedChip.offsetTop}, left=${clonedChip.offsetLeft}`);
 };
-
-
 
 
 // BOARD FUNCTIONALITY
@@ -1021,20 +1090,59 @@ const rollAnimation = (winningNumber) =>  {
   const numberedBoards = document.querySelectorAll('.numbered-board');
   const carousel = document.querySelector('.carousel');
   const carouselHeight = 55; 
-  const targetOffset = -(winningNumber) * carouselHeight; 
+  const targetOffset = -(winningNumber) * carouselHeight;
+  let winningChipClone;
   carousel.style.transform = `translateY(${targetOffset}px)`;
   setTimeout(() => {
     numberedBoards.forEach(board => {
       if (board.getAttribute('data-value') === winningNumber) {
         if(board.classList.contains('red')){
           bettingBoard[9].style.boxShadow = '1px 1px 1px 5px gold';
+          setTimeout(() => {
+            const chipsOnBoard = bettingBoard[9].querySelectorAll('.chip');
+            chipsOnBoard.forEach(chip => {
+              console.log("attribute of chip: " + chip.getAttribute('data-value'));
+              let value = chip.getAttribute('data-value');
+              winningChipClone = createChipElement(value);
+              placeChipOnBoard(winningChipClone, bettingBoard[9]);
+            })
+            
+          }, 500);
         } else if(board.classList.contains('black')) {
           bettingBoard[8].style.boxShadow = '1px 1px 1px 5px gold';
+          const chipsOnBoard = bettingBoard[8].querySelectorAll('.chip');
+          setTimeout(() => {
+            chipsOnBoard.forEach(chip => {
+              console.log("attribute of chip: " + chip.getAttribute('data-value'));
+              let value = chip.getAttribute('data-value');
+              winningChipClone = createChipElement(value);
+              placeChipOnBoard(winningChipClone, bettingBoard[8]);
+            });
+            
+          }, 500);
         }
         if(winningNumber % 2 == 0 ) {
           bettingBoard[0].style.boxShadow = '1px 1px 1px 5px gold';
+          setTimeout(() => {
+            const chipsOnBoard = bettingBoard[0].querySelectorAll('.chip');
+            chipsOnBoard.forEach(chip => {
+              console.log("attribute of chip: " + chip.getAttribute('data-value'));
+              let value = chip.getAttribute('data-value');
+              winningChipClone = createChipElement(value);
+              placeChipOnBoard(winningChipClone, bettingBoard[0]);
+            });
+          }, 500)
         } else if (winningNumber % 2 !== 0) {
           bettingBoard[1].style.boxShadow = '1px 1px 1px 5px gold';
+          setTimeout(() => {
+            const chipsOnBoard = bettingBoard[1].querySelectorAll('.chip');
+            chipsOnBoard.forEach(chip => {
+              console.log("attribute of chip: " + chip.getAttribute('data-value'));
+              let value = chip.getAttribute('data-value');
+              winningChipClone = createChipElement(value);
+              placeChipOnBoard(winningChipClone, bettingBoard[1]);
+            });
+          }, 500 );
         }
       board.classList.add('active');
     }
@@ -1087,9 +1195,11 @@ const decreaseAnimation = () => {
 
 
 // Initialize Three.js components
+var canvas = document.createElement('canvas');
+canvas.classList.add('dice-canvas');
 var scene = new THREE.Scene();
 var camera = new THREE.PerspectiveCamera(100, window.innerWidth / window.innerHeight, 0.1, 1000);
-var renderer = new THREE.WebGLRenderer({ alpha: true });
+var renderer = new THREE.WebGLRenderer({ canvas:canvas, alpha: true });
 updateRendererSize(); // Call initially and on window resize
 function updateRendererSize() {
     var width = window.innerWidth * 1;
@@ -1139,28 +1249,28 @@ function rollDiceToNumber(number) {
     // Set the target rotation based on the face number
     var targetRotation = new THREE.Quaternion();
     switch (number) {
-        case 1:
-            targetRotation.setFromAxisAngle(new THREE.Vector3(2, 0, 0), Math.PI); // 1
-            break;
-        case 2:
-            targetRotation.setFromAxisAngle(new THREE.Vector3(0, 1, 2), -Math.PI / 2);
-            break;
-        case 3:
-            targetRotation.setFromAxisAngle(new THREE.Vector3(1, 1, 1), Math.PI); // 3
-            break;
-        case 4:
-            targetRotation.setFromAxisAngle(new THREE.Vector3(1, 2, 0), Math.PI); // 4
-            break;
-        case 5:
-            targetRotation.setFromAxisAngle(new THREE.Vector3(0, 1, 2), Math.PI / 2); // 5
-            break;
-        case 6:
-            targetRotation.setFromAxisAngle(new THREE.Vector3(2, 2, 0), Math.PI);
-            break;
-        default:
-            console.error("Invalid number for dice face.");
-            return;
-    }
+      case 1:
+          targetRotation.setFromAxisAngle(new THREE.Vector3(0, 2, 1), -Math.PI); // 1
+          break;
+      case 2:
+          targetRotation.setFromAxisAngle(new THREE.Vector3(0, 1, 2), -Math.PI / 2);  // 2
+          break;
+      case 3:
+          targetRotation.setFromAxisAngle(new THREE.Vector3(1, 1, 1), Math.PI); // 3
+          break;
+      case 4:
+          targetRotation.setFromAxisAngle(new THREE.Vector3(1, 2, 0), Math.PI); // 4
+          break;
+      case 5:
+          targetRotation.setFromAxisAngle(new THREE.Vector3(2, 1, 0), Math.PI / 2); // 5
+          break;
+      case 6:
+          targetRotation.setFromAxisAngle(new THREE.Vector3(2, 2, 0), Math.PI); // 6
+          break;
+      default:
+          console.error("Invalid number for dice face.");
+          return;
+  }
     diceBody.quaternion.copy(targetRotation);
 }
 
@@ -1171,7 +1281,7 @@ var loader = new THREE.GLTFLoader();
 loader.load('models/dice.glb', function (gltf) {
     diceModel = gltf.scene;
     diceModel.position.set(0, 0, 1); // adjust position as needed
-    diceModel.visible = false;
+    // diceModel.visible = false;
     scene.add(diceModel);
 
     // Create Cannon.js body for the dice
