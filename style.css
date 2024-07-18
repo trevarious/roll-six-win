@@ -53,7 +53,6 @@ body {
     z-index: 9999;
     overflow: hidden;
   }
-  
   .disable-document::before {
     content: '';
     position: absolute;
@@ -197,25 +196,35 @@ body {
       user-select: all;
     }
 .nav-button {
-  background: linear-gradient(135deg, #0c6b0c, #009900);
-  color: white;
+  background: linear-gradient(135deg, #284f34, #194319);
+  color: rgb(255, 255, 0);
   font-weight: 700;
   border: none;
-  border-radius: 5px;
+  border-radius: 45px 15px 45px 15px;
   padding: 10px 20px;
   font-family: 'Times New Roman', Times, serif;
   text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+  box-shadow: inset 1px 1px 10px 5px rgba(0, 0, 0, 0.5);
   cursor: pointer;
   user-select: none;
   
 
 }
+.deposit-withdraw-container {
+  /* border: 1px solid yellow; */
+  padding-top: 25px;
+}
 .nav-button:hover {
   animation: pulse-two .93s;
 }
 #account-button,
-#deposit-button {
+#deposit-button,
+#withdraw-button {
   display: none;
+  margin-bottom: 15px;
+}
+#deposit-button {
+  
 }
 #connect-wallet-button {
   margin-right: 550px;
@@ -650,35 +659,35 @@ body {
     border: .5px solid rgb(132, 170, 131);
   }
   .l-axis.one {
-    background-color: rgb(70, 39, 0);
+    background: radial-gradient(circle at center, rgb(255, 196, 0) 6%, rgb(70, 39, 0) 6%);
     border: 0.5px solid rgb(215, 162, 102);
   }
   .r-axis.one {
-    background-color: rgb(70, 39, 0);
+    background: radial-gradient(circle at center, rgb(255, 196, 0) 6%, rgb(70, 39, 0) 6%);
     border: 0.5px solid rgb(215, 162, 102);
   }
   .t-axis.one {
-    background-color: rgb(70, 39, 0);
+    background: radial-gradient(circle at center, rgb(255, 196, 0) 6%, rgb(70, 39, 0) 6%);
     border: 0.5px solid rgb(215, 162, 102);
   }
   .b-axis.one {
-    background-color: rgb(70, 39, 0);
+    background: radial-gradient(circle at center, rgb(255, 196, 0) 6%, rgb(70, 39, 0) 6%);
     border: 0.5px solid rgb(215, 162, 102);
   }
   .lh-axis.one {
-    background-color: rgb(70, 39, 0);
+    background: radial-gradient(circle at center, rgb(255, 196, 0) 6%, rgb(70, 39, 0) 6%);
     border: 0.5px solid rgb(215, 162, 102);
   }
   .rh-axis.one {
-    background-color: rgb(70, 39, 0);
+    background: radial-gradient(circle at center, rgb(255, 196, 0) 6%, rgb(70, 39, 0) 6%);
     border: 0.5px solid rgb(215, 162, 102);
   }
   .th-axis.one {
-    background-color: rgb(70, 39, 0);
+    background: radial-gradient(circle at center, rgb(255, 196, 0) 6%, rgb(70, 39, 0) 6%);
     border: 0.5px solid rgb(215, 162, 102);
   }
   .bh-axis.one {
-    background-color: rgb(70, 39, 0);
+    background: radial-gradient(circle at center, rgb(255, 196, 0) 6%, rgb(70, 39, 0) 6%);
     border: 0.5px solid rgb(215, 162, 102);
   }
   .chip.disabled {
@@ -781,12 +790,54 @@ body {
   .active {
     display: block !important;
   }
-  #place-bet-button {
+  .light-container {
+    font-weight: 400 !important;
     position: absolute;
-    right: 15px;
-    bottom: 30px;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    align-items: flex-start;
+    top: 5px;
+    left: 5px;
+  }
+  .light {
+    line-height: 0 !important;
+    font-weight: 700 !important;
+    font-size: 14px !important;
+    text-shadow: none !important;
+    flex: 1;
+    width: 1px !important;
+    height: 1px !important;
+    border-radius: 50%;
+    margin-bottom: 2px !important;
+    text-align: center;
+    line-height: 30px;
+    color: rgba(255, 255, 255, .2) !important;
+    background-color: rgba(38, 53, 40, 0.5) !important;
+  }
+  .light.active-light {
+    background: radial-gradient(circle at center, rgba(151, 255, 151, 0.9) 90%, white 100% )!important;
+    color: rgba(113, 94, 116, 0.8) !important;
   }
   
+  #place-bet-button {
+    position: absolute;
+    bottom: -40px;
+    right: 228px;
+    width: 125px;
+    height: 50px;
+    border-radius: 5%;
+    color: rgb(255, 255, 255);
+    background: linear-gradient(to right, rgba(100, 100, 100, 1), rgba(171, 248, 162, 0.73));
+    border: 5px solid rgba(100, 100, 100, 0.85);
+    border-radius: 0 10px 10px 0;
+    border-left: none;
+    font-family: monospace;
+  }
+  #place-bet-button:hover {
+    background-color: rgba(245, 245, 245, 0.415);
+    cursor: pointer;
+  }
   .board-value {
     height: 15px;
     width: auto;
@@ -1144,12 +1195,12 @@ body {
     align-items: center;
     justify-content: center;
     font-size: 2rem;
-    width: 90%;
-    height: 90%;
+    width: 70%;
+    height: 70%;
     position: absolute;
     background: linear-gradient(to bottom right, rgba(75, 75, 75, 0.99) 10%, rgba(0, 0, 0, 0.99) 90%);
     box-shadow: inset 1px 1px 5px rgba(0, 0, 0, 0.1);
-    inset: 5%; /* Adjusted for better centering */
+    inset: 15%; /* Adjusted for better centering */
     border-radius: 10px 50px 10px 10px;
   }
   
@@ -1163,12 +1214,12 @@ body {
     justify-content: center;
     text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5);
     font-size: 2rem;
-    width: 90%;
-    height: 90%;
+    width: 70%;
+    height: 70%;
     position: absolute;
     background: linear-gradient(to bottom right, rgba(255, 75, 75, 0.9) 10%, rgba(255, 0, 0, 0.85) 90%);
     box-shadow: inset 1px 1px 5px rgba(0, 0, 0, 0.1);
-    inset: 5%; /* Adjusted for better centering */
+    inset: 15%; /* Adjusted for better centering */
     border-radius: 50px 10px 10px 10px;
   }
   

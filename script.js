@@ -12,6 +12,7 @@ let userAccount;
 
 const createAccountButton = document.getElementById("account-button");
 const depositButton = document.getElementById("deposit-button");
+const withdrawButton = document.getElementById("withdraw-button");
 const connectWalletButton = document.getElementById("connect-wallet-button");
 const playButton = document.getElementById("place-bet-button");
 const balance = document.getElementById("balance");
@@ -79,6 +80,7 @@ const updateAccountDisplay = async () => {
       const balanceInMatic = web3.utils.fromWei(balanceValue);
       const roundValue = await contract.methods.getCurrentRound().call({from: userAccount});
       depositButton.classList.add('active');
+      withdrawButton.classList.add('active');
       createAccountButton.style.display = 'none';
       connectWalletButton.style.display = 'none';
       let sliceAmount = balanceInMatic > 0 && balanceInMatic < 10 ? 4 : balanceInMatic < 100 ? 5 : balanceInMatic < 1000 ? 6 : balanceInMatic < 10000 ? 7 : 0; 
@@ -226,39 +228,40 @@ const updateConsecutiveWins = async () => {
 
 }
 const updateBoardMultiplier = (elementclass,multipliedAmount) => {
-  const boardToChange = document.querySelectorAll(`${elementclass}`);
+  let multiplier;
   if(elementclass == '.parity-streaks' || elementclass == '.color-streaks') {
-    multipliedAmount = multipliedAmount == 1 ? 1 : multipliedAmount == 2 ? 1.5 : multipliedAmount == 3 ? 2 : multipliedAmount == 4 ? 2.5 : multipliedAmount == 5 ? 3 : multipliedAmount == 6 ? 4 : multipliedAmount == 7 ? 5 : multipliedAmount == 8 ? 6 : '';
+    multiplier= multipliedAmount >= 2 && multipliedAmount <= 3 ? 1 : multipliedAmount >= 4 && multipliedAmount <= 5  ? 2 : multipliedAmount >= 6 && multipliedAmount <= 7 ? 3 : multipliedAmount >= 8 && multipliedAmount <= 9 ? 4 : multipliedAmount >= 10 ? 5 : '';
   }
-  boardToChange.forEach(board => {
-    const previousWinMultiplier = board.querySelector('.win-multiplier');
-    if (previousWinMultiplier) {
-      board.removeChild(previousWinMultiplier);
-    }
-    if(multipliedAmount >= 1){
-      if(elementclass == '.parity-streaks') {
-        const element = document.createElement('div');
-        element.classList.add('win-multiplier');
-        element.style.color = 'white';
-        element.style.top = '30%';
-        element.textContent =  `${multipliedAmount}x`;
-        board.appendChild(element);
-      } else if(elementclass == '.number-streaks') {
-        if(multipliedAmount > 2){
-        const element = document.createElement('div');
-        element.classList.add('win-multiplier');
-        element.style.top = '30%';
-        element.textContent =  `${multipliedAmount == 3 ? .1 : multipliedAmount == 4 ? .5 : multipliedAmount == 5 ? .5 : multipliedAmount == 6 ? 1 : ''}%`;
-        board.appendChild(element);
+  const elementToModify = document.querySelectorAll(elementclass);
+  elementToModify.forEach(element => {
+    let amountToLight = multipliedAmount -1;
+    const lightContainer = document.createElement('div');
+    lightContainer.classList.add('light-container');
+    if(elementclass == '.parity-streaks' || elementclass == '.color-streaks'){ 
+      for(let i = 0; i < 10; i++) {
+        const light = document.createElement('div');
+        light.classList.add('light');
+        if(amountToLight > 0) {
+          light.classList.add('active-light');
+          light.textContent = `${i < 3 ? '1x' : i < 5 ? '2x' : i < 7 ? '3x' : i < 9 ? '4x' : i == 9 ? '5x' : '' }`
+          amountToLight--;
         }
-      } else if( elementclass == '.color-streaks') {
-        const element = document.createElement('div');
-        element.classList.add('win-multiplier');
-        element.style.color = 'white';
-        element.style.top = '30%';
-        element.textContent =  `${multipliedAmount}x`;
-        board.appendChild(element);
+        // Set the label when amountToLight is 0 and isOut is false
+        if (amountToLight <= 0 && amountToLight > -2) {
+          light.textContent = `${i < 3 ? '1x' : i < 5 ? '2x' : i < 7 ? '3x' : i < 9 ? '4x' : '5x'}`;
+          amountToLight--;
+        }
+        lightContainer.appendChild(light);
       }
+      if(element.id == 'red-board') {
+        lightContainer.style.alignItems = 'flex-end';
+        lightContainer.style.left = '-5px';
+      }
+      if(element.id == 'odd-board') {
+        lightContainer.style.alignItems = 'flex-end';
+        lightContainer.style.left = '-5px';
+      }
+      element.appendChild(lightContainer);
     }
   })
 }
@@ -376,6 +379,23 @@ const deposit = async () => {
   }
 };
 depositButton.addEventListener("click", deposit);
+
+const withdraw = async () => {
+  try {
+    const amount = prompt("Please enter an amount in MATIC");
+    if (amount && !isNaN(amount) && parseFloat(amount) > 0) {
+      const amountInWei = web3.utils.toWei(amount, "ether");
+      const receipt = await contract.methods.withdraw().send({from: userAccount, value: amountInWei});
+      console.log(`Withdraw complete for : ${amount} MATIC`);
+    } else {
+      console.log(`Please enter a valid amount. Amount entered: ${amount}`);
+      alert(`Please enter a valid amount. Amount entered: ${amount}`);
+    }
+  } catch (error) {
+    console.log(`There was an error processing your withdraw: ${error}`);
+  }
+}
+withdrawButton.addEventListener("click", withdraw);
 
 const createAccount = async () => {
       try {
@@ -1282,8 +1302,3 @@ function resetScene() {
       world.addBody(diceBody);
   });
 }
-
-
-// Huge problem in fetching number history for the first round of ebery batch... it shows the second rounds number
-// Huge problem in fee, only whole digits
-// Huge problem in multiplier, no .5 mult, only 1, 2, 3, etc.
