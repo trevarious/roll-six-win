@@ -1,7 +1,6 @@
  /*
       TODO 07/17/24: 
         - Chip limit, 100 chips
-        - Bonus distribution for winning chips
         - Update balance when rejecting bet transaction
   */
 import { contractABI } from './abi.js';
@@ -47,7 +46,7 @@ const initialize = async () => {
         let totalBetAmount = calculateTotalBetAmount();
         updateBetDisplay(totalBetAmount);
         updateColorMapping();
-        fetchAndUpdateConsecutiveWins();
+        updateConsecutiveWins();
         dealChips();
         const canvasElements = document.querySelector('.dice-canvas');
         canvasElements.style.opacity = `1`;
@@ -206,18 +205,26 @@ const updateColorMapping = async () => {
     console.log("Colors assigned:", colors);
 }
 
-const fetchAndUpdateConsecutiveWins = async () => {
+const fetchConsecutiveWins = async () => {
     try {
         const result = await contract.methods.getConsecutiveWins().call({from: userAccount});
-        console.log(result);
-        updateBoardMultiplier('.number-streaks',result[0]);
-        updateBoardMultiplier('.parity-streaks',result[1]);
-        updateBoardMultiplier('.color-streaks',result[2]);
+        return result;
     } catch (error) {
         console.error('Error fetching consecutive wins:', error);
     }
 }
+const updateConsecutiveWins = async () => {
+  try {
+    const result = await contract.methods.getConsecutiveWins().call({from: userAccount});
+    console.log(result);
+    updateBoardMultiplier('.number-streaks',result[0]);
+    updateBoardMultiplier('.parity-streaks',result[1]);
+    updateBoardMultiplier('.color-streaks',result[2]);
+} catch (error) {
+    console.error('Error fetching consecutive wins:', error);
+}
 
+}
 const updateBoardMultiplier = (elementclass,multipliedAmount) => {
   const boardToChange = document.querySelectorAll(`${elementclass}`);
   if(elementclass == '.parity-streaks' || elementclass == '.color-streaks') {
@@ -513,25 +520,22 @@ rollIndicator.classList.add('rolling');
     setTimeout(() => {
       updateBetDisplay(updatedTotalBetAmountInMatic);
       updateColorMapping();
-      fetchAndUpdateConsecutiveWins();
+      updateConsecutiveWins();
     }, 12000);
   } catch (error) {
     console.error("Error placing bets:", error);
     alert("Error placing bets: " + error.message);
     rollIndicator.classList.remove('rolling');
     document.body.classList.remove('disable-document');
-    canvasElements.style.right = ``;
-    canvasElements.classList.remove('active');
     const boards = document.querySelectorAll('.betting-board');
     boards.forEach(board => {
       const chips = board.querySelectorAll('.placed');
       chips.forEach(chip => chip.remove());
     });
     bets.length = 0;
-    // diceModel.visible = false;
-    setTimeout(() => {
-      totalBetAmount.textContent = 0;
-    }, 150);
+    let updatedTotalBetAmount = calculateTotalBetAmount();
+    let updatedTotalBetAmountInMatic = parseFloat(web3.utils.fromWei(updatedTotalBetAmount.toString()));
+    updateBetDisplay(updatedTotalBetAmountInMatic);
   }
 };
 playButton.addEventListener("click", play);
@@ -927,7 +931,11 @@ const breakEvenAnimation = () => {
   }, 3000);
 
 }
-const rollAnimation = (winningNumber) =>  {
+const rollAnimation = async (winningNumber) =>  {
+  const consecutiveWins = await fetchConsecutiveWins();
+  let multipliedAmountForNumber = consecutiveWins[0] == 3 ? 0.1 : consecutiveWins[0] == 4 || consecutiveWins[0] == 5 ? 0.5 : consecutiveWins[0] >= 6 ? 1 : '';
+  let multipliedAmountForParity = consecutiveWins[1] == 1 ? 1 : consecutiveWins[1] == 2 ? 1.5 : consecutiveWins[1] == 3 ? 2 : consecutiveWins[1] == 4 ? 2.5 : consecutiveWins[1] == 5 ? 3 : consecutiveWins[1] == 6 ? 4 : consecutiveWins[1] == 7 ? 5 : consecutiveWins[1] == 8 ? 6 : '';
+  let multipliedAmountForColor = consecutiveWins[2] == 1 ? 1 : consecutiveWins[2] == 2 ? 1.5 : consecutiveWins[2] == 3 ? 2 : consecutiveWins[2] == 4 ? 2.5 : consecutiveWins[2] == 5 ? 3 : consecutiveWins[2] == 6 ? 4 : consecutiveWins[2] == 7 ? 5 : consecutiveWins[2] == 8 ? 6 : '';
   const bettingBoard = document.querySelectorAll('.betting-board');
   const numberedBoards = document.querySelectorAll('.numbered-board');
   const carousel = document.querySelector('.carousel');
@@ -941,64 +949,116 @@ const rollAnimation = (winningNumber) =>  {
         setTimeout(() => {
           const chipsOnBoard = board.querySelectorAll('.chip');
           chipsOnBoard.forEach(chip => {
-            console.log("attribute of chip: " + chip.getAttribute('data-value'));
             let value = chip.getAttribute('data-value');
-            winningChipClone = createChipElement(value);
-            winningChipClone.style.boxShadow = '1px 1px 15px yellow';
-            placeChipOnBoard(winningChipClone, board);
+            console.log("attribute of chip: " + chip.getAttribute('data-value'));
+            for(let i = 0; i < 5; i++) {
+              if(multipliedAmountForNumber > 3) {
+                for(let i = 0; i < multipliedAmountForNumber; i++){
+                  winningChipClone = createChipElement(value);
+                  winningChipClone.style.boxShadow = '15px 15px 60px yellow';
+                  placeChipOnBoard(winningChipClone, board);
+                }
+              } else {
+                winningChipClone = createChipElement(value);
+                winningChipClone.style.boxShadow = '15px 15px 60px yellow';
+                placeChipOnBoard(winningChipClone, board);
+              }
+            }
           })
-        }, 750);
+        }, 2000);
         if(board.classList.contains('red')){
           bettingBoard[9].style.boxShadow = '1px 1px 1px 5px gold';
           setTimeout(() => {
             const chipsOnBoard = bettingBoard[9].querySelectorAll('.chip');
-            chipsOnBoard.forEach(chip => {
-              console.log("attribute of chip: " + chip.getAttribute('data-value'));
-              let value = chip.getAttribute('data-value');
-              winningChipClone = createChipElement(value);
-              winningChipClone.style.boxShadow = '1px 1px 15px yellow';
-              placeChipOnBoard(winningChipClone, bettingBoard[9]);
-            })
+              chipsOnBoard.forEach(chip => {
+                if(multipliedAmountForColor > 0) {
+                  for(let i = 0; i < multipliedAmountForColor; i++ ){
+                  console.log("attribute of chip: " + chip.getAttribute('data-value'));
+                  let value = chip.getAttribute('data-value');
+                  winningChipClone = createChipElement(value);
+                  winningChipClone.style.boxShadow = '15px 15px 60px yellow';
+                  placeChipOnBoard(winningChipClone, bettingBoard[9]);
+                  }
+                } else {
+                  console.log("attribute of chip: " + chip.getAttribute('data-value'));
+                  let value = chip.getAttribute('data-value');
+                  winningChipClone = createChipElement(value);
+                  winningChipClone.style.boxShadow = '15px 15px 60px yellow';
+                  placeChipOnBoard(winningChipClone, bettingBoard[9]);
+                }
+              })
+
+
             
-          }, 750);
+          }, 2000);
         } else if(board.classList.contains('black')) {
           bettingBoard[8].style.boxShadow = '1px 1px 1px 5px gold';
           const chipsOnBoard = bettingBoard[8].querySelectorAll('.chip');
           setTimeout(() => {
             chipsOnBoard.forEach(chip => {
-              console.log("attribute of chip: " + chip.getAttribute('data-value'));
-              let value = chip.getAttribute('data-value');
-              winningChipClone = createChipElement(value);
-              winningChipClone.style.boxShadow = '1px 1px 15px yellow';
-              placeChipOnBoard(winningChipClone, bettingBoard[8]);
-            });
+              if(multipliedAmountForColor > 0) {
+                for(let i = 0; i < multipliedAmountForColor; i++ ){
+                console.log("attribute of chip: " + chip.getAttribute('data-value'));
+                let value = chip.getAttribute('data-value');
+                winningChipClone = createChipElement(value);
+                winningChipClone.style.boxShadow = '15px 15px 60px yellow';
+                placeChipOnBoard(winningChipClone, bettingBoard[8]);
+                }
+              } else {
+                console.log("attribute of chip: " + chip.getAttribute('data-value'));
+                let value = chip.getAttribute('data-value');
+                winningChipClone = createChipElement(value);
+                winningChipClone.style.boxShadow = '15px 15px 60px yellow';
+                placeChipOnBoard(winningChipClone, bettingBoard[8]);
+              }
+            })
             
-          }, 750);
+          }, 2000);
         }
         if(winningNumber % 2 == 0 ) {
           bettingBoard[0].style.boxShadow = '1px 1px 1px 5px gold';
           setTimeout(() => {
             const chipsOnBoard = bettingBoard[0].querySelectorAll('.chip');
             chipsOnBoard.forEach(chip => {
-              console.log("attribute of chip: " + chip.getAttribute('data-value'));
-              let value = chip.getAttribute('data-value');
-              winningChipClone = createChipElement(value);
-              winningChipClone.style.boxShadow = '1px 1px 15px yellow';
-              placeChipOnBoard(winningChipClone, bettingBoard[0]);
-            });
-          }, 750)
+              if(multipliedAmountForParity > 0) {
+                for(let i = 0; i < multipliedAmountForParity; i++ ){
+                console.log("attribute of chip: " + chip.getAttribute('data-value'));
+                let value = chip.getAttribute('data-value');
+                winningChipClone = createChipElement(value);
+                winningChipClone.style.boxShadow = '15px 15px 60px yellow';
+                placeChipOnBoard(winningChipClone, bettingBoard[0]);
+                }
+              } else {
+                console.log("attribute of chip: " + chip.getAttribute('data-value'));
+                let value = chip.getAttribute('data-value');
+                winningChipClone = createChipElement(value);
+                winningChipClone.style.boxShadow = '15px 15px 60px yellow';
+                placeChipOnBoard(winningChipClone, bettingBoard[0]);
+              }
+            })
+          }, 2000)
         } else if (winningNumber % 2 !== 0) {
           bettingBoard[1].style.boxShadow = '1px 1px 1px 5px gold';
           setTimeout(() => {
             const chipsOnBoard = bettingBoard[1].querySelectorAll('.chip');
             chipsOnBoard.forEach(chip => {
-              console.log("attribute of chip: " + chip.getAttribute('data-value'));
-              let value = chip.getAttribute('data-value');
-              winningChipClone = createChipElement(value);
-              winningChipClone.style.boxShadow = '1px 1px 15px yellow';
-              placeChipOnBoard(winningChipClone, bettingBoard[1]);
-            });
-          }, 750 );
+              if(multipliedAmountForParity > 0) {
+                for(let i = 0; i < multipliedAmountForParity; i++ ){
+                console.log("attribute of chip: " + chip.getAttribute('data-value'));
+                let value = chip.getAttribute('data-value');
+                winningChipClone = createChipElement(value);
+                winningChipClone.style.boxShadow = '15px 15px 60px yellow';
+                placeChipOnBoard(winningChipClone, bettingBoard[1]);
+                }
+              } else {
+                console.log("attribute of chip: " + chip.getAttribute('data-value'));
+                let value = chip.getAttribute('data-value');
+                winningChipClone = createChipElement(value);
+                winningChipClone.style.boxShadow = '15px 15px 60px yellow';
+                placeChipOnBoard(winningChipClone, bettingBoard[1]);
+              }
+            })
+          }, 2000 );
         }
       board.classList.add('active');
     }
@@ -1224,4 +1284,6 @@ function resetScene() {
 }
 
 
-// Huge problem in fetching number history for the first round of ebery batch... it shows the second rounds number 
+// Huge problem in fetching number history for the first round of ebery batch... it shows the second rounds number
+// Huge problem in fee, only whole digits
+// Huge problem in multiplier, no .5 mult, only 1, 2, 3, etc.

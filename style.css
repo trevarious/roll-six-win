@@ -651,35 +651,35 @@ body {
   }
   .l-axis.one {
     background-color: rgb(70, 39, 0);
-    border: 1px solid rgb(215, 162, 102);
+    border: 0.5px solid rgb(215, 162, 102);
   }
   .r-axis.one {
     background-color: rgb(70, 39, 0);
-    border: 1px solid rgb(215, 162, 102);
+    border: 0.5px solid rgb(215, 162, 102);
   }
   .t-axis.one {
     background-color: rgb(70, 39, 0);
-    border: 1px solid rgb(215, 162, 102);
+    border: 0.5px solid rgb(215, 162, 102);
   }
   .b-axis.one {
     background-color: rgb(70, 39, 0);
-    border: 1px solid rgb(215, 162, 102);
+    border: 0.5px solid rgb(215, 162, 102);
   }
   .lh-axis.one {
     background-color: rgb(70, 39, 0);
-    border: 1px solid rgb(215, 162, 102);
+    border: 0.5px solid rgb(215, 162, 102);
   }
   .rh-axis.one {
     background-color: rgb(70, 39, 0);
-    border: 1px solid rgb(215, 162, 102);
+    border: 0.5px solid rgb(215, 162, 102);
   }
   .th-axis.one {
     background-color: rgb(70, 39, 0);
-    border: 1px solid rgb(215, 162, 102);
+    border: 0.5px solid rgb(215, 162, 102);
   }
   .bh-axis.one {
     background-color: rgb(70, 39, 0);
-    border: 1px solid rgb(215, 162, 102);
+    border: 0.5px solid rgb(215, 162, 102);
   }
   .chip.disabled {
     opacity: 0.1; /* Example: reduce opacity for disabled chips */
@@ -1065,20 +1065,25 @@ body {
   
   
   .chip-0_1 {
-    background: #ffcccb; /* Light pink */
+    background: radial-gradient(circle, rgb(255, 216, 216) 40%, #ff9999, black 115%);
   }
   
   .chip-0_25 {
-    background: #add8e6; /* Light blue */
+    background: radial-gradient(circle, white, #99ccff, black 115%);
   }
   
   .chip-0_5 {
-    background: #90ee90; /* Light green */
+    background: radial-gradient(circle, white, #66ff99, black 115%);
   }
   
   .chip-1 {
-    background: #ffa500; /* Orange */
+    background: radial-gradient(circle,
+      rgb(255, 224, 156) 50%,  /* 50% position: light yellow (#ffe09c) at the center */
+      #ffa500 70%,             /* 70% position: orange (#ffa500) */
+      black 99%                /* 99% position: black at the outer edges */
+    );
   }
+  
   
   
   .chip-default {
