@@ -5,6 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Roll Six Win</title>
     <link rel="stylesheet" href="style.css">
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=PT+Serif:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+      </style>      
+          <style>
+            @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+Display:ital,wght@0,100..900;1,100..900&display=swap');
+            </style>
   </head>
   <body>
     <div id="lossParticles" class="hidden"></div>
@@ -76,7 +82,8 @@
     <div id="chip0_5" class="chip-stack"></div>
     <div id="chip1_0" class="chip-stack"></div>
   </div>
-  <button id="place-bet-button">Place Bet</button>
+  <a class="board-control-button" id="place-bet-button"></a>
+  <a class="board-control-button" id="clear-board-button"></a>
   <ul id="history-display" class="hidden"></ul>
   <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/web3@1.6.0/dist/web3.min.js"></script>
@@ -85,6 +92,5 @@
   <script src="https://cdn.jsdelivr.net/npm/cannon@0.6.2/build/cannon.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/loaders/GLTFLoader.js"></script>
   <script type="module" src="script.js"></script>
-
   </body>
 </html>

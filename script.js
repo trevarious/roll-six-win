@@ -1,7 +1,7 @@
  /*
       TODO 07/17/24: 
-        - Chip limit, 100 chips
-        - Update balance when rejecting bet transaction
+        - Chip update when bet takes place, top when lose chips, bottom when uou iwn chips 
+        - Top off chips when a bet take place, keep the chips ouu win and idscard the chips you lse 
   */
 import { contractABI } from './abi.js';
 import { contractAddress } from './address.js'; 
@@ -15,19 +15,24 @@ const depositButton = document.getElementById("deposit-button");
 const withdrawButton = document.getElementById("withdraw-button");
 const connectWalletButton = document.getElementById("connect-wallet-button");
 const playButton = document.getElementById("place-bet-button");
+const rollIndicator = document.getElementById("roll-indicator") 
 const balance = document.getElementById("balance");
 const round = document.getElementById("round");
-const numberedBoards = document.querySelectorAll('.numbered-board');
+const numberedBoards = document.querySelectorAll(".numbered-board");
 
 let tenthCounter = 0;
 let twentyFifthCounter = 0;
 let fiftiethCounter = 0;
 let oneCounter = 0;
+document.addEventListener('DOMContentLoaded', () => {
+  playButton.classList.add("hidden");
+});
 
 const initialize = async () => {
   if (window.ethereum) {
     let response = prompt("Would you like to sign in with MetaMask?");
-    const yesRegex = /^(y|yes|yeah|ya|ye|yup|)$/i;
+    const yesRegex = /^y[a-z]*$/i;
+    const noRegex = /^n[a-z]*$/i;
     if(yesRegex.test(response.trim()))  {
       try {
         const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
@@ -38,28 +43,31 @@ const initialize = async () => {
         const timestamp = new Date().toLocaleString();
         console.log(`Log in successful at ${timestamp}`);
         const accountConnectionIndicator = document.getElementById("log-status-indicator");
-        accountConnectionIndicator.classList.add('logged-in');
-        const rollIndicator = document.getElementById('roll-indicator');
-        rollIndicator.classList.add('logged-in');
-        rollIndicator.textContent = 'Welcome';
-        setTimeout(() => { rollIndicator.classList.remove('logged-in'); rollIndicator.textContent = ''; }, 3000);
+        accountConnectionIndicator.classList.add("logged-in");
+        rollIndicator.classList.add("logged-in");
+        rollIndicator.textContent = "Welcome";
+        setTimeout(() => { 
+          rollIndicator.classList.remove("logged-in"); 
+          rollIndicator.textContent = ""; 
+        }, 3000);
         updateAccountDisplay();
         let totalBetAmount = calculateTotalBetAmount();
         updateBetDisplay(totalBetAmount);
         updateColorMapping();
         updateConsecutiveWins();
         dealChips();
-        const canvasElements = document.querySelector('.dice-canvas');
-        canvasElements.style.opacity = `1`;
+        const canvasElements = document.querySelector(".dice-canvas");
+        canvasElements.style.opacity = "1";
         setTimeout(() => {
-          canvasElements.style.opacity = ``;
+          canvasElements.style.opacity = "";
         }, 3000);
             } catch (error) {
         console.log(error);
         alert("There was an error connecting wallet");
       }
-    } else if (response.toLowerCase() === 'n') {
+    } else if(noRegex.test(response.trim()))  {
       console.log("User declined sign-in with MetaMask.");
+      alert("User declined sign-in with MetaMask.");
     } else {
       console.log("Invalid response. Please enter 'y' or 'n'.");
       alert("Invalid response. Please enter 'y' or 'n'.");
@@ -68,10 +76,11 @@ const initialize = async () => {
     console.log("Failed to make request");
     alert("Failed to make request");
   }
+  playButton.classList.add("hidden");
 };
 connectWalletButton.addEventListener("click", initialize);
 
-const accountAddress = document.getElementById('wallet-address');
+const accountAddress = document.getElementById("wallet-address");
 const updateAccountDisplay = async () => {
   try {
     const isAccountCreated = await contract.methods.getAccountStatus(userAccount).call({ from: userAccount });
@@ -79,10 +88,10 @@ const updateAccountDisplay = async () => {
       const balanceValue = await contract.methods.getBalance().call({from: userAccount});
       const balanceInMatic = web3.utils.fromWei(balanceValue);
       const roundValue = await contract.methods.getCurrentRound().call({from: userAccount});
-      depositButton.classList.add('active');
-      withdrawButton.classList.add('active');
-      createAccountButton.style.display = 'none';
-      connectWalletButton.style.display = 'none';
+      depositButton.classList.add("active");
+      withdrawButton.classList.add("active");
+      createAccountButton.style.display = "none";
+      connectWalletButton.style.display = "none";
       let sliceAmount = balanceInMatic > 0 && balanceInMatic < 10 ? 4 : balanceInMatic < 100 ? 5 : balanceInMatic < 1000 ? 6 : balanceInMatic < 10000 ? 7 : 0; 
       balance.textContent = balanceInMatic.slice(0, sliceAmount);
       if(balanceInMatic < 1) {
@@ -201,10 +210,8 @@ const updateColorMapping = async () => {
           board.classList.remove('waiting');
           board.classList.add(color);
           colors[color]++;
-          console.log("Index " + index + " with value " + colorMapping[index] + ", color applied: " + color);
         }, 1000)
     });
-    console.log("Colors assigned:", colors);
 }
 
 const fetchConsecutiveWins = async () => {
@@ -218,7 +225,7 @@ const fetchConsecutiveWins = async () => {
 const updateConsecutiveWins = async () => {
   try {
     const result = await contract.methods.getConsecutiveWins().call({from: userAccount});
-    console.log(result);
+    console.log("updateConsecutiveWins:  " +result);
     updateBoardMultiplier('.number-streaks',result[0]);
     updateBoardMultiplier('.parity-streaks',result[1]);
     updateBoardMultiplier('.color-streaks',result[2]);
@@ -228,13 +235,14 @@ const updateConsecutiveWins = async () => {
 
 }
 const updateBoardMultiplier = (elementclass,multipliedAmount) => {
-  let multiplier;
-  if(elementclass == '.parity-streaks' || elementclass == '.color-streaks') {
-    multiplier= multipliedAmount >= 2 && multipliedAmount <= 3 ? 1 : multipliedAmount >= 4 && multipliedAmount <= 5  ? 2 : multipliedAmount >= 6 && multipliedAmount <= 7 ? 3 : multipliedAmount >= 8 && multipliedAmount <= 9 ? 4 : multipliedAmount >= 10 ? 5 : '';
-  }
   const elementToModify = document.querySelectorAll(elementclass);
   elementToModify.forEach(element => {
-    let amountToLight = multipliedAmount -1;
+        element.classList.remove('active-light');
+        element.textContent = '';
+  });
+  elementToModify.forEach(element => {
+    let amountToLight = multipliedAmount > 0 ? multipliedAmount - 1 : multipliedAmount -1;
+    let anotherLight = multipliedAmount > 0 ? multipliedAmount - 1 : multipliedAmount -1;
     const lightContainer = document.createElement('div');
     lightContainer.classList.add('light-container');
     if(elementclass == '.parity-streaks' || elementclass == '.color-streaks'){ 
@@ -243,13 +251,15 @@ const updateBoardMultiplier = (elementclass,multipliedAmount) => {
         light.classList.add('light');
         if(amountToLight > 0) {
           light.classList.add('active-light');
-          light.textContent = `${i < 3 ? '1x' : i < 5 ? '2x' : i < 7 ? '3x' : i < 9 ? '4x' : i == 9 ? '5x' : '' }`
           amountToLight--;
         }
-        // Set the label when amountToLight is 0 and isOut is false
-        if (amountToLight <= 0 && amountToLight > -2) {
+        if (anotherLight > -1) {
           light.textContent = `${i < 3 ? '1x' : i < 5 ? '2x' : i < 7 ? '3x' : i < 9 ? '4x' : '5x'}`;
-          amountToLight--;
+          anotherLight--;
+          if(!light.classList.contains('active-light')){
+            light.classList.add('scale');
+            light.style.scale = '1.2';
+          }
         }
         lightContainer.appendChild(light);
       }
@@ -275,25 +285,33 @@ const dealChips = async () => {
   const chipValues = [1, 0.5, 0.25, 0.1]; 
   let amountDistributed = 0;
   let amountToDistribute = 0;
+  let chipCounter = 0; 
   try {
     const balanceValue = await contract.methods.getBalance().call({ from: userAccount });
     const balanceInMatic = web3.utils.fromWei(balanceValue);
-    let testAmount = amountToDistribute;
-    let remainingBalance = parseFloat(balanceInMatic); 
-    amountToDistribute = remainingBalance; 
-    while (amountToDistribute >= amountDistributed) {
+    amountToDistribute = parseFloat(balanceInMatic); 
+
+    while (amountToDistribute >= amountDistributed && chipCounter < 100) {
       for (let i = 0; i < chipValues.length; i++) {
-        testAmount++;
+        const value = chipValues[i];
+        if (amountToDistribute < value) {
+          continue; // Skip if value is greater than remaining balance
+        }
+
+        if (chipCounter >= 100) {
+          break; // Exit the loop if 100 chips have been created
+        }
+
         let randomYTranslate = Math.floor(Math.random() * 61) - 10;
         let randomXtranslate = Math.floor(Math.random() * 61) - 30;
         let randomRotation = Math.floor(Math.random() * 45);
-        const value = chipValues[i];
+        
         const chip = document.createElement('div');
         chip.className = 'chip';
         chip.setAttribute('draggable', 'true');
         chip.setAttribute('data-value', value);
         chip.innerHTML = `
-          <div class="center-circle"></div>
+          <div class="center-circle ${value == 0.1 ? 'tenth' : value == 0.25 ? 'twentyFifth' : value == 0.5 ? 'fiftieth' : value == 1 ? 'one' : ''}"></div>
           <div class="center-circle value">${value}</div>
           <div class="l-axis ${value == 0.1 ? 'tenth' : value == 0.25 ? 'twentyFifth' : value == 0.5 ? 'fiftieth' : value == 1 ? 'one' : ''}"></div>
           <div class="lh-axis ${value == 0.1 ? 'tenth' : value == 0.25 ? 'twentyFifth' : value == 0.5 ? 'fiftieth' : value == 1 ? 'one' : ''}"></div>
@@ -304,11 +322,13 @@ const dealChips = async () => {
           <div class="b-axis ${value == 0.1 ? 'tenth' : value == 0.25 ? 'twentyFifth' : value == 0.5 ? 'fiftieth' : value == 1 ? 'one' : ''}"></div>
           <div class="bh-axis ${value == 0.1 ? 'tenth' : value == 0.25 ? 'twentyFifth' : value == 0.5 ? 'fiftieth' : value == 1 ? 'one' : ''}"></div>
         `;
+        
+        chip.addEventListener('dragstart', dragStart);
+        chip.addEventListener('dragend', dragEnd);
+        chip.style.transform = `translateY(${randomYTranslate}px) translateX(${Math.floor(Math.random() * randomXtranslate) + 1}px) rotate(${randomRotation}deg)`;
+        
         switch (value) {
           case 0.1:
-            chip.addEventListener('dragstart', dragStart);
-            chip.addEventListener('dragend', dragEnd);
-            chip.style.transform = `translateY(${randomYTranslate}px) translateX(${Math.floor(Math.random() * randomXtranslate) + 1}px) rotate(${randomRotation}deg)`;
             tenthCounter++;
             chip.classList.add('chip-0_1');
             tenthStack.appendChild(chip);
@@ -345,18 +365,36 @@ const dealChips = async () => {
             chipsContainer.appendChild(chip);
             break;
         }
-        remainingBalance -= value;
         amountDistributed += value;
-        if (remainingBalance < value) {
-          break;
+        chipCounter++;
+
+        if (amountToDistribute < value) {
+          break; // Exit the for loop if remaining balance is less than chip value
         }
       }
     }
   } catch (error) {
     console.log(error);
   }
-}
-
+};
+const clearChips = () => {
+  const chip01 =document.getElementById('chip0_1');
+  const chip25 =document.getElementById('chip0_25');
+  const chip50 =document.getElementById('chip0_5');
+  const chip1 =document.getElementById('chip1_0');
+  while (chip01.firstChild) {
+    chip01.removeChild(chip01.firstChild);
+  }
+  while (chip25.firstChild) {
+    chip25.removeChild(chip25.firstChild);
+  }
+  while (chip50.firstChild) {
+    chip50.removeChild(chip50.firstChild);
+  }
+  while (chip1.firstChild) {
+    chip1.removeChild(chip1.firstChild);
+  }
+};
 const deposit = async () => {
   try {
     const amount = prompt("Please enter an amount in MATIC");
@@ -385,8 +423,8 @@ const withdraw = async () => {
     const amount = prompt("Please enter an amount in MATIC");
     if (amount && !isNaN(amount) && parseFloat(amount) > 0) {
       const amountInWei = web3.utils.toWei(amount, "ether");
-      const receipt = await contract.methods.withdraw().send({from: userAccount, value: amountInWei});
-      console.log(`Withdraw complete for : ${amount} MATIC`);
+      const receipt = await contract.methods.eject().send({from: userAccount});
+      console.log(`Withdraw complete for : ${amount} MATIC ` + receipt);
     } else {
       console.log(`Please enter a valid amount. Amount entered: ${amount}`);
       alert(`Please enter a valid amount. Amount entered: ${amount}`);
@@ -410,8 +448,14 @@ createAccountButton.addEventListener("click", createAccount);
 
 const bets = [];
 const play = async () => {
+  playButton.classList.add('clicked');
+  setTimeout(() => {
+    playButton.classList.remove('clicked');
+  },500)
+  setTimeout(() => {
+    playButton.classList.remove("active");
+  },1000)
   document.body.classList.add('disable-document');
-  const rollIndicator = document.getElementById('roll-indicator');
 rollIndicator.classList.add('rolling');
   try {
     let totalBetAmounts = calculateTotalBetAmount();
@@ -431,7 +475,7 @@ rollIndicator.classList.add('rolling');
     console.log(receipt);
     const canvasElements = document.querySelector('.dice-canvas');
     canvasElements.classList.add('active');
-    var randomNumber = Math.floor(Math.random() * (187 - 67 + 1)) + 67;
+    var randomNumber = Math.floor(Math.random() * (450 - (-450) + 1)) + (-450);
     canvasElements.style.right = `${randomNumber}px`;
     if (receipt.events && receipt.events.Result) {
       if(receipt.events.BonusPaid) {
@@ -525,10 +569,28 @@ rollIndicator.classList.add('rolling');
     }
     setTimeout(() => {
       const boards = document.querySelectorAll('.betting-board');
-    boards.forEach(board => {
-      const chips = board.querySelectorAll('.placed');
-      chips.forEach(chip => chip.remove());
-    });
+      boards.forEach(board => {
+        if (!board.isWin) {
+          const chips = board.querySelectorAll('.placed');
+          chips.forEach(chip => {
+            chip.style.transition = 'top 3s ease'; // Change transition to top property
+            chip.style.top = '-1000px'; // Remove !important
+            console.log('loser');
+          });
+        } else {
+          const chips = board.querySelectorAll('.placed');
+          chips.forEach(chip => {
+            chip.style.transition = 'top 3s ease'; // Change transition to top property
+            chip.style.top = '1000px'; // Remove !important
+            console.log('winner');
+          });
+        }
+        board.classList.remove('winning-board');
+        board.isWin = false;
+      });
+
+    },8500)
+    setTimeout(() => {
     document.body.classList.remove('disable-document');
     canvasElements.classList.remove('active');
     canvasElements.style.right = ``;
@@ -541,6 +603,8 @@ rollIndicator.classList.add('rolling');
       updateBetDisplay(updatedTotalBetAmountInMatic);
       updateColorMapping();
       updateConsecutiveWins();
+      clearChips();
+      dealChips();
     }, 12000);
   } catch (error) {
     console.error("Error placing bets:", error);
@@ -556,6 +620,9 @@ rollIndicator.classList.add('rolling');
     let updatedTotalBetAmount = calculateTotalBetAmount();
     let updatedTotalBetAmountInMatic = parseFloat(web3.utils.fromWei(updatedTotalBetAmount.toString()));
     updateBetDisplay(updatedTotalBetAmountInMatic);
+    clearChips();
+    dealChips();
+    playButton.classList.remove("active");
   }
 };
 playButton.addEventListener("click", play);
@@ -660,6 +727,9 @@ const removeChip = (chip, value, boardValue) => {
       console.error(`Could not find chip of that value. Value: ${value}`);
       break;
   }
+  if(bets.length <= 0) {
+    playButton.classList.remove("active");
+  }
 };
 const createChipElement = (value) => {
   const chip = document.createElement('div');
@@ -668,7 +738,7 @@ const createChipElement = (value) => {
   chip.setAttribute('data-value', value);
   chip.classList.add(`${value == 0.1 ? 'chip-0_1' : value == 0.25 ? 'chip-0_25' : value == 0.5 ? 'chip-0_5' : value == 1 ? 'chip-1' : '' }`);
   chip.innerHTML = `
-          <div class="center-circle"></div>
+       <div class="center-circle ${value == 0.1 ? 'tenth' : value == 0.25 ? 'twentyFifth' : value == 0.5 ? 'fiftieth' : value == 1 ? 'one' : ''}"></div>
           <div class="center-circle value">${value}</div>
           <div class="l-axis ${value == 0.1 ? 'tenth' : value == 0.25 ? 'twentyFifth' : value == 0.5 ? 'fiftieth' : value == 1 ? 'one' : ''}"></div>
           <div class="lh-axis ${value == 0.1 ? 'tenth' : value == 0.25 ? 'twentyFifth' : value == 0.5 ? 'fiftieth' : value == 1 ? 'one' : ''}"></div>
@@ -761,6 +831,11 @@ function dragDrop(e) {
     chip.addEventListener('click', () => {
       removeChip(chip, chipValue, boardValue);
     });
+    const clearBoardButton = document.getElementById("clear-board-button");
+    clearBoardButton.addEventListener("click", () => {
+      if(bets.length > 0)
+      removeChip(chip, chipValue, boardValue);
+    })
     this.appendChild(chip);
     let betType = boardValue < 7 ? 0 : boardValue < 9 ? 1 : 2;
     let valueInWei = web3.utils.toWei(chipValue.toString(), 'ether');
@@ -787,6 +862,9 @@ function dragDrop(e) {
     increaseAnimation();
     console.log(`Number of bets: ${bets.length}`);
   }
+  if(bets.length > 0) {
+    playButton.classList.add("active");
+  }
 }
 const calculateTotalBetAmount = () => {
   return bets.reduce((total, bet) => total.add(web3.utils.toBN(bet.amount)), web3.utils.toBN('0'));
@@ -796,7 +874,6 @@ const calculateTotalBetAmount = () => {
 
 // ANIMATIONS
 const winAnimation = (amountWon) => {
-  const rollIndicator = document.getElementById('roll-indicator');
   rollIndicator.classList.remove('active');
   var duration = 6 * 1000;
   var end = Date.now() + duration;
@@ -826,7 +903,6 @@ const winAnimation = (amountWon) => {
   }());
 }
 const lossAnimation = (amountLost) => {
-  const rollIndicator = document.getElementById('roll-indicator');
   rollIndicator.classList.remove('active');
   document.getElementById('lossParticles').classList.remove('hidden');
   document.getElementById('lossParticles').style.opacity = '0';
@@ -897,7 +973,6 @@ const lossAnimation = (amountLost) => {
   }, 3000);
 }
 const breakEvenAnimation = () => {
-  const rollIndicator = document.getElementById('roll-indicator');
   rollIndicator.classList.remove('active');
   document.getElementById('breakEven').style.opacity = '0';
   document.getElementById('breakEven').classList.remove('hidden'); 
@@ -966,6 +1041,7 @@ const rollAnimation = async (winningNumber) =>  {
   setTimeout(() => {
     numberedBoards.forEach(board => {
       if (board.getAttribute('data-value') === winningNumber) {
+        board.isWin = true;
         setTimeout(() => {
           const chipsOnBoard = board.querySelectorAll('.chip');
           chipsOnBoard.forEach(chip => {
@@ -975,7 +1051,6 @@ const rollAnimation = async (winningNumber) =>  {
               if(multipliedAmountForNumber > 3) {
                 for(let i = 0; i < multipliedAmountForNumber; i++){
                   winningChipClone = createChipElement(value);
-                  winningChipClone.style.boxShadow = '15px 15px 60px yellow';
                   placeChipOnBoard(winningChipClone, board);
                 }
               } else {
@@ -987,7 +1062,8 @@ const rollAnimation = async (winningNumber) =>  {
           })
         }, 2000);
         if(board.classList.contains('red')){
-          bettingBoard[9].style.boxShadow = '1px 1px 1px 5px gold';
+          bettingBoard[9].classList.add('winning-board');
+          bettingBoard[9].isWin = true;
           setTimeout(() => {
             const chipsOnBoard = bettingBoard[9].querySelectorAll('.chip');
               chipsOnBoard.forEach(chip => {
@@ -1012,7 +1088,8 @@ const rollAnimation = async (winningNumber) =>  {
             
           }, 2000);
         } else if(board.classList.contains('black')) {
-          bettingBoard[8].style.boxShadow = '1px 1px 1px 5px gold';
+          bettingBoard[8].classList.add('winning-board');
+          bettingBoard[8].isWin = true;
           const chipsOnBoard = bettingBoard[8].querySelectorAll('.chip');
           setTimeout(() => {
             chipsOnBoard.forEach(chip => {
@@ -1036,7 +1113,8 @@ const rollAnimation = async (winningNumber) =>  {
           }, 2000);
         }
         if(winningNumber % 2 == 0 ) {
-          bettingBoard[0].style.boxShadow = '1px 1px 1px 5px gold';
+          bettingBoard[0].classList.add('winning-board');
+          bettingBoard[0].isWin = true;
           setTimeout(() => {
             const chipsOnBoard = bettingBoard[0].querySelectorAll('.chip');
             chipsOnBoard.forEach(chip => {
@@ -1058,7 +1136,8 @@ const rollAnimation = async (winningNumber) =>  {
             })
           }, 2000)
         } else if (winningNumber % 2 !== 0) {
-          bettingBoard[1].style.boxShadow = '1px 1px 1px 5px gold';
+          bettingBoard[1].classList.add('winning-board');
+          bettingBoard[1].isWin = true;
           setTimeout(() => {
             const chipsOnBoard = bettingBoard[1].querySelectorAll('.chip');
             chipsOnBoard.forEach(chip => {
@@ -1080,7 +1159,7 @@ const rollAnimation = async (winningNumber) =>  {
             })
           }, 2000 );
         }
-      board.classList.add('active');
+      board.classList.add('winning-board');
     }
           })
   }, 2000)
