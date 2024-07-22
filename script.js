@@ -1381,3 +1381,9 @@ function resetScene() {
       world.addBody(diceBody);
   });
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => {
+      document.getElementById('overlay').classList.add('loaded');
+  }, 2000)
+})

@@ -24,7 +24,6 @@ contract RollSixWin is VRFConsumerBaseV2Plus {
     /// @notice Struct representing statistics for a player
     struct PlayerStats {
         uint256 totalWageredAmount;
-        uint256 totalBetsWon;
         int256 netProfit;
     }
 
@@ -51,6 +50,7 @@ contract RollSixWin is VRFConsumerBaseV2Plus {
     uint256 private maximumBet;
     uint256 private minimumBet;
     uint256 private feeBasisPoints;
+    uint256 private minimumBetForStreaks;
     uint8[6] private colorMapping;
     bool private isStreaksActive;
     
@@ -105,9 +105,10 @@ contract RollSixWin is VRFConsumerBaseV2Plus {
     {
         _subscriptionId = subscriptionId;
         _owner = msg.sender;
-        feeBasisPoints = 300;
+        feeBasisPoints = 500;
         maximumBet = 1 ether;
-        minimumBet = 10000000000000000;
+        minimumBet = 1e16;
+        minimumBetForStreaks = minimumBet * 5;
         for (uint8 i = 0; i < 6; i++) {
             colorMapping[i] = i < 3 ? 1 : 2;
         }
@@ -170,8 +171,9 @@ contract RollSixWin is VRFConsumerBaseV2Plus {
         uint256 totalAmount = 0;
         uint256 playerBalance = player.balance;
         uint256 currentRound = player.currentRound;
+        uint256 betsLength = bets.length;
 
-        for (uint i = 0; i < bets.length; i++) {
+        for (uint i = 0; i < betsLength; i++) {
             Bet calldata bet = bets[i];
             uint256 betAmount = bet.amount;
 
@@ -198,6 +200,13 @@ contract RollSixWin is VRFConsumerBaseV2Plus {
         numWords = _numWords;
 
         emit NumberOfWordsChanged(_numWords, block.timestamp);
+    }
+    /// @notice Allows the owner to change the minumum bet required for streaks bonus
+    /// @param _minimumBetForStreaks New bet minimum to activate and maintain streaks
+    function changeMinimumBetForStreaksBonus( uint256 _minimumBetForStreaks) external ownerOnly {
+         minimumBetForStreaks = _minimumBetForStreaks;
+
+         emit MinimumBetForStreaksChanged(_minimumBetForStreaks, block.timestamp);
     }
 
     /// @notice Allows the owner to update the fee settings
@@ -268,12 +277,10 @@ contract RollSixWin is VRFConsumerBaseV2Plus {
         view  
         returns(
             uint256, 
-            uint256, 
             int256
         ) {
         PlayerStats storage stats = players[msg.sender].stats;
         return (
-            stats.totalBetsWon,
             stats.totalWageredAmount,
             stats.netProfit
         );
@@ -283,12 +290,11 @@ contract RollSixWin is VRFConsumerBaseV2Plus {
     /// @return limitedHistory An array containing the last n winning numbers
     function getWinningNumberHistory() public view returns (uint8[] memory) {
         uint256 currentRound = players[msg.sender].currentRound;
-        require(currentRound > 0, "You must create an account to check number history.");
-        uint256 historySize = currentRound - 1;
+        require(currentRound > 1, "You must play at least one round to retrieve history.");
+        uint256 historySize = (currentRound - 1) % numWords;
         uint8[] memory limitedHistory = new uint8[](historySize);
         for (uint256 i = 0; i < historySize; i++) {
-            uint256 historicalRoundIndex = (currentRound - 1 - i) % numWords;
-            uint8 diceResult = uint8((wordBank[msg.sender][historicalRoundIndex] % 6) + 1);
+            uint8 diceResult = uint8((wordBank[msg.sender][i] % 6) + 1);
             limitedHistory[i] = diceResult;
         }
         return limitedHistory;
@@ -309,13 +315,13 @@ contract RollSixWin is VRFConsumerBaseV2Plus {
         return consecutiveWins;
     }
 
-
     /// @notice Gets the balance of a player
     /// @return balance The balance of the player in Wei
     function getBalance() public view returns(uint256) {
         uint256 balance = players[msg.sender].balance;
         return balance;
     }
+
     /// @notice Gets the current round for the caller
     /// @return The current round number
     function getCurrentRound() public view returns(uint256) {
@@ -374,7 +380,7 @@ contract RollSixWin is VRFConsumerBaseV2Plus {
     function processPlay(address  playersAddress, uint8 diceResult) private {
         PlayerInfo storage playerInfo = players[playersAddress];
 
-        if (playerInfo.currentRound % 50 == 0){
+        if (playerInfo.currentRound % numWords == 0){
             randomnessRequest();
             setRandomnessRequestStatus(playerInfo);
         }
@@ -383,7 +389,6 @@ contract RollSixWin is VRFConsumerBaseV2Plus {
             uint8 guessRange = (betType == uint8(BetType.Number)) ? 6 : 2;
             uint256 betCount = 0;
             uint256 totalBetAmount;
-
             for (uint8 guess = 1; guess <= guessRange; guess++) {
                 uint8 key = generateKey(BetType(betType), guess);
                 uint256  betAmount = playerBets[playersAddress][key];
@@ -394,18 +399,16 @@ contract RollSixWin is VRFConsumerBaseV2Plus {
                     updatePlayersBalanceAndStatistics(playersAddress, winAmount, betAmount);
                     totalBetAmount += betAmount;
                     betCount++;
-                    if (win && betCount == 1) {
+                    if (win && betCount == 1 && totalBetAmount >= minimumBetForStreaks) {
                         playerWins[playersAddress][betType]++;
                     } else {
                         playerWins[playersAddress][betType] = 0;
                     }
-                    
                     delete playerBets[playersAddress][key];
                     emit Result(playersAddress, BetType(betType), guess, diceResult, win, winAmount);
                 }
 
             }
-
             if (betCount == 1) {
                 applyBonus(playersAddress, BetType(betType), totalBetAmount);
             }
@@ -426,7 +429,6 @@ contract RollSixWin is VRFConsumerBaseV2Plus {
         PlayerStats storage stats = playerInfo.stats;
 
         playerInfo.balance += winAmount;
-        stats.totalBetsWon++;
         stats.totalWageredAmount += betAmount;
         stats.netProfit += int256(winAmount) - int256(betAmount);
 
@@ -456,29 +458,35 @@ contract RollSixWin is VRFConsumerBaseV2Plus {
         uint256 bonus = 0;
         uint256 consecutiveWins = getConsecutiveWins(player, betType);
         
-        uint16[8] memory standardBonuses = [10000, 15000, 20000, 25000, 30000, 40000, 50000, 60000];
-        uint8[3] memory numberBonuses = [10, 50, 100];
-
-        if (betType == BetType.Number) {
-            if (consecutiveWins == 3) {
-                bonus = address(this).balance * numberBonuses[0] / MAX_BASIS_POINTS;
-            } else if (consecutiveWins == 4 || consecutiveWins == 5) {
-                bonus = address(this).balance * numberBonuses[1] / MAX_BASIS_POINTS;
-            } else if (consecutiveWins >= 6) {
-                bonus = address(this).balance * numberBonuses[2] / MAX_BASIS_POINTS;
+        uint16[5] memory standardBonuses = [10000, 20000, 30000, 40000, 50000];
+        if (totalBetAmount >= minimumBetForStreaks) {
+            if (betType == BetType.Number) {
+                if (consecutiveWins >= 2 && consecutiveWins <= 5) {
+                    bonus = totalBetAmount * standardBonuses[0] / MAX_BASIS_POINTS;
+                } else if (consecutiveWins >= 6) {
+                    bonus = totalBetAmount * standardBonuses[4] / MAX_BASIS_POINTS;
+                } 
+            } else {
+                if (consecutiveWins >= 2 && consecutiveWins <= 3) {
+                    bonus = totalBetAmount * standardBonuses[0] / MAX_BASIS_POINTS;
+                } else if (consecutiveWins >= 4 && consecutiveWins <= 5) {
+                     bonus = totalBetAmount * standardBonuses[1] / MAX_BASIS_POINTS;
+                } else if (consecutiveWins >= 6 && consecutiveWins <= 7) {
+                     bonus = totalBetAmount * standardBonuses[2] / MAX_BASIS_POINTS;
+                } else if (consecutiveWins >= 8 && consecutiveWins <= 9) {
+                     bonus = totalBetAmount * standardBonuses[3] / MAX_BASIS_POINTS;
+                } else if (consecutiveWins >= 10) {
+                     bonus = totalBetAmount * standardBonuses[4] / MAX_BASIS_POINTS;
+                }
             }
         } else {
-            if (consecutiveWins >= 2) {
-                uint256 index = (consecutiveWins - 2) % standardBonuses.length;
-                bonus = totalBetAmount * standardBonuses[index] / MAX_BASIS_POINTS;
-            }
+                playerWins[player][uint8(betType)] = 0;
         }
         if (bonus > 0) {
             players[player].balance += bonus;
             players[player].stats.netProfit += int(bonus); 
             emit BonusPaid(player, betType, bonus);
-        } else {
-        }
+        } 
     }
 
 
@@ -762,6 +770,12 @@ contract RollSixWin is VRFConsumerBaseV2Plus {
     /// @dev Emitted when a donation is received
     event DonationRecieved(
         uint256 amount,
+        uint256 timestamp
+    );
+    
+    /// @dev Emitted when streaks bet amount changes
+    event MinimumBetForStreaksChanged(
+        uint256 newBetMinumum,
         uint256 timestamp
     );
 }

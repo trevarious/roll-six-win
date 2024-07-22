@@ -13,6 +13,7 @@
             </style>
   </head>
   <body>
+    <div id="overlay"></div>
     <div id="lossParticles" class="hidden"></div>
     <div id="breakEven" class="hidden"></div>
     <h1 id="loseMessage"></h1>
@@ -21,7 +22,7 @@
     <header>
       <nav>
         <div id="account-container">
-          <p id="account" class="board-text">ACCOUNT</p>
+          <p id="account" class="board-text">Account</p>
           <div id="wallet-status-container">
           <div id="log-status-indicator"></div>
           <div id="wallet-address">Disconnected</div>
@@ -43,27 +44,26 @@
             </div>
           </div>
       </div>
-      <div id="stats-container">
-        <div class="stat-item">
-          <p class="board-text">TOTAL BET</p>
-          <div class="board-value fade-in-out" id="totalBetAmount"></div>
-        </div>
-        <div class="stat-item">
-          <p class="board-text">ROUND</p>
-          <p class="board-value" id="round"></p>
-        </div>
-        <div class="stat-item">
-          <p class="board-text">BALANCE</p>
-          <p class="board-value fade-in-out" id="balance"></p>
-        </div>
-        <div class=" stat-item deposit-withdraw-container">
-          <button class="nav-button" id="deposit-button">Deposit</button>
-          <button class="nav-button" id="withdraw-button">Withdraw</button>
-        </div>
-  <div id="totalPL"></div>
-      </div>
       </nav>
     </header>
+    <div id="stats-container">
+      <div class="stat-item">
+        <p class="board-text">TOTAL BET</p>
+        <div class="board-value fade-in-out" id="totalBetAmount"></div>
+      </div>
+      <div class="stat-item">
+        <p class="board-text">ROUND</p>
+        <p class="board-value" id="round"></p>
+      </div>
+      <div class="stat-item">
+        <p class="board-text">BALANCE</p>
+        <p class="board-value fade-in-out" id="balance"></p>
+      </div>
+      <div class=" stat-item">
+        <button class="money-buttons" id="deposit-button">Deposit</button>
+        <button class="money-buttons" id="withdraw-button">Withdraw</button>
+      </div>
+    </div>
   <div class="board-container">
     <div id="even-board" class="betting-board parity-streaks" data-value="8"></div>
     <div id="odd-board" class="betting-board parity-streaks" data-value="7"></div>

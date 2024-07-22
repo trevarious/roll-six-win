@@ -297,6 +297,25 @@ export const contractABI = [
 		"inputs": [
 			{
 				"indexed": false,
+				"internalType": "uint256",
+				"name": "newBetMinumum",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "timestamp",
+				"type": "uint256"
+			}
+		],
+		"name": "MinimumBetForStreaksChanged",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": false,
 				"internalType": "uint32",
 				"name": "newWordAmount",
 				"type": "uint32"
@@ -504,6 +523,19 @@ export const contractABI = [
 	{
 		"inputs": [
 			{
+				"internalType": "uint256",
+				"name": "_minimumBetForStreaks",
+				"type": "uint256"
+			}
+		],
+		"name": "changeMinimumBetForStreaksBonus",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
 				"internalType": "uint32",
 				"name": "_numWords",
 				"type": "uint32"
@@ -662,11 +694,6 @@ export const contractABI = [
 		"inputs": [],
 		"name": "getPlayerStatistics",
 		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			},
 			{
 				"internalType": "uint256",
 				"name": "",
@@ -844,4 +871,4 @@ export const contractABI = [
 		"stateMutability": "payable",
 		"type": "receive"
 	}
-];
+]
