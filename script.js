@@ -1,14 +1,24 @@
- /*
-      TODO 07/17/24: 
-        - Chip update when bet takes place, top when lose chips, bottom when uou iwn chips 
-        - Top off chips when a bet take place, keep the chips ouu win and idscard the chips you lse 
-  */
+/*
+TODO 07/17/24: 
+- Chip update when bet takes place, top when lose chips, bottom when uou iwn chips 
+- Top off chips when a bet take place, keep the chips ouu win and idscard the chips you lse 
+*/
 import { contractABI } from './abi.js';
 import { contractAddress } from './address.js'; 
-
+let calculateTotalBetAmount = () => {
+  return bets.reduce((total, bet) => total.add(web3.utils.toBN(bet.amount)), web3.utils.toBN('0'));
+};
 let web3;
 let contract;
 let userAccount;
+let board;
+let bets;
+let polygonImage = document.createElement('img');
+polygonImage.src = '/roll-six-win/assets/polygon.chip.webp';
+polygonImage.width = 18;
+polygonImage.height = 18;
+polygonImage.setAttribute('draggable', false);
+polygonImage.style.userSelect = 'none';
 
 const createAccountButton = document.getElementById("account-button");
 const depositButton = document.getElementById("deposit-button");
@@ -16,14 +26,11 @@ const withdrawButton = document.getElementById("withdraw-button");
 const connectWalletButton = document.getElementById("connect-wallet-button");
 const playButton = document.getElementById("place-bet-button");
 const rollIndicator = document.getElementById("roll-indicator") 
+const totalBetAmount = document.getElementById("totalBetAmount");
 const balance = document.getElementById("balance");
 const round = document.getElementById("round");
 const numberedBoards = document.querySelectorAll(".numbered-board");
 
-let tenthCounter = 0;
-let twentyFifthCounter = 0;
-let fiftiethCounter = 0;
-let oneCounter = 0;
 document.addEventListener('DOMContentLoaded', () => {
   playButton.classList.add("hidden");
 });
@@ -51,16 +58,16 @@ const initialize = async () => {
           rollIndicator.textContent = ""; 
         }, 3000);
         updateAccountDisplay();
+        let calculateTotalBetAmount = () => {
+          return bets ? bets.reduce((total, bet) => total.add(web3.utils.toBN(bet.amount)), web3.utils.toBN('0')) : '';
+        };
         let totalBetAmount = calculateTotalBetAmount();
         updateBetDisplay(totalBetAmount);
         updateColorMapping();
         updateConsecutiveWins();
-        dealChips();
-        const canvasElements = document.querySelector(".dice-canvas");
-        canvasElements.style.opacity = "1";
-        setTimeout(() => {
-          canvasElements.style.opacity = "";
-        }, 3000);
+        board = new Board();
+        bets = board.bets;
+        board.dealChips();
             } catch (error) {
         console.log(error);
         alert("There was an error connecting wallet");
@@ -92,12 +99,13 @@ const updateAccountDisplay = async () => {
       withdrawButton.classList.add("active");
       createAccountButton.style.display = "none";
       connectWalletButton.style.display = "none";
-      let sliceAmount = balanceInMatic > 0 && balanceInMatic < 10 ? 4 : balanceInMatic < 100 ? 5 : balanceInMatic < 1000 ? 6 : balanceInMatic < 10000 ? 7 : 0; 
+      let sliceAmount = balanceInMatic > 0 && balanceInMatic < 10 ? 4 : balanceInMatic < 100 ? 5 : balanceInMatic < 1000 ? 6 : balanceInMatic < 10000 ? 7 : 0;
       balance.textContent = balanceInMatic.slice(0, sliceAmount);
+      balance.appendChild(polygonImage);
       if(balanceInMatic < 1) {
         depositButton.classList.add('broke');
       }
-      round.textContent = roundValue;
+      round.textContent =roundValue;
       accountAddress.innerHTML = `<p>Connected!</p>`;
       setTimeout(() => {
         accountAddress.innerHTML = `<p>0x...${userAccount.slice(-5)}</p>`;
@@ -160,6 +168,7 @@ const updateBetDisplay = async (totalBetAmount) => {
       const balanceElement = document.getElementById('balance'); 
       if (parseFloat(balanceElement.textContent) !== currentBalance) {
         balanceElement.textContent = remainingBalance.toFixed(2); 
+        balanceElement.appendChild(polygonImage);
       }
       const totalBetElement = document.getElementById('totalBetAmount');
       if (totalBetElement) {
@@ -177,6 +186,7 @@ const updateBetDisplay = async (totalBetAmount) => {
           totalBetElement.classList.remove('hidden2'); 
         }, 150);
       }
+      decreaseAnimation();
     } else {
       console.error("Failed to fetch current balance.");
     }
@@ -275,126 +285,6 @@ const updateBoardMultiplier = (elementclass,multipliedAmount) => {
     }
   })
 }
-
-const dealChips = async () => {
-  const chipsContainer = document.getElementById('chips');
-  const tenthStack = document.getElementById('chip0_1');
-  const twentyFifthStack = document.getElementById('chip0_25');
-  const fiftiethStack = document.getElementById('chip0_5');
-  const oneStack = document.getElementById('chip1_0');
-  const chipValues = [1, 0.5, 0.25, 0.1]; 
-  let amountDistributed = 0;
-  let amountToDistribute = 0;
-  let chipCounter = 0; 
-  try {
-    const balanceValue = await contract.methods.getBalance().call({ from: userAccount });
-    const balanceInMatic = web3.utils.fromWei(balanceValue);
-    amountToDistribute = parseFloat(balanceInMatic); 
-
-    while (amountToDistribute >= amountDistributed && chipCounter < 100) {
-      for (let i = 0; i < chipValues.length; i++) {
-        const value = chipValues[i];
-        if (amountToDistribute < value) {
-          continue; // Skip if value is greater than remaining balance
-        }
-
-        if (chipCounter >= 100) {
-          break; // Exit the loop if 100 chips have been created
-        }
-
-        let randomYTranslate = Math.floor(Math.random() * 61) - 10;
-        let randomXtranslate = Math.floor(Math.random() * 61) - 30;
-        let randomRotation = Math.floor(Math.random() * 45);
-        
-        const chip = document.createElement('div');
-        chip.className = 'chip';
-        chip.setAttribute('draggable', 'true');
-        chip.setAttribute('data-value', value);
-        chip.innerHTML = `
-          <div class="center-circle ${value == 0.1 ? 'tenth' : value == 0.25 ? 'twentyFifth' : value == 0.5 ? 'fiftieth' : value == 1 ? 'one' : ''}"></div>
-          <div class="center-circle value">${value}</div>
-          <div class="l-axis ${value == 0.1 ? 'tenth' : value == 0.25 ? 'twentyFifth' : value == 0.5 ? 'fiftieth' : value == 1 ? 'one' : ''}"></div>
-          <div class="lh-axis ${value == 0.1 ? 'tenth' : value == 0.25 ? 'twentyFifth' : value == 0.5 ? 'fiftieth' : value == 1 ? 'one' : ''}"></div>
-          <div class="r-axis ${value == 0.1 ? 'tenth' : value == 0.25 ? 'twentyFifth' : value == 0.5 ? 'fiftieth' : value == 1 ? 'one' : ''}"></div>
-          <div class="rh-axis ${value == 0.1 ? 'tenth' : value == 0.25 ? 'twentyFifth' : value == 0.5 ? 'fiftieth' : value == 1 ? 'one' : ''}"></div>
-          <div class="t-axis ${value == 0.1 ? 'tenth' : value == 0.25 ? 'twentyFifth' : value == 0.5 ? 'fiftieth' : value == 1 ? 'one' : ''}"></div>
-          <div class="th-axis ${value == 0.1 ? 'tenth' : value == 0.25 ? 'twentyFifth' : value == 0.5 ? 'fiftieth' : value == 1 ? 'one' : ''}"></div>
-          <div class="b-axis ${value == 0.1 ? 'tenth' : value == 0.25 ? 'twentyFifth' : value == 0.5 ? 'fiftieth' : value == 1 ? 'one' : ''}"></div>
-          <div class="bh-axis ${value == 0.1 ? 'tenth' : value == 0.25 ? 'twentyFifth' : value == 0.5 ? 'fiftieth' : value == 1 ? 'one' : ''}"></div>
-        `;
-        
-        chip.addEventListener('dragstart', dragStart);
-        chip.addEventListener('dragend', dragEnd);
-        chip.style.transform = `translateY(${randomYTranslate}px) translateX(${Math.floor(Math.random() * randomXtranslate) + 1}px) rotate(${randomRotation}deg)`;
-        
-        switch (value) {
-          case 0.1:
-            tenthCounter++;
-            chip.classList.add('chip-0_1');
-            tenthStack.appendChild(chip);
-            break;
-          case 0.25:
-            chip.addEventListener('dragstart', dragStart);
-            chip.addEventListener('dragend', dragEnd);
-            chip.style.transform = `translateY(${randomYTranslate}px) translateX(${Math.floor(Math.random() * randomXtranslate) + 1}px) rotate(${randomRotation}deg)`;
-            twentyFifthCounter++;
-            chip.classList.add('chip-0_25');
-            twentyFifthStack.appendChild(chip);
-            break;
-          case 0.5:
-            chip.addEventListener('dragstart', dragStart);
-            chip.addEventListener('dragend', dragEnd);
-            chip.style.transform = `translateY(${randomYTranslate}px) translateX(${Math.floor(Math.random() * randomXtranslate) + 1}px) rotate(${randomRotation}deg)`;
-            fiftiethCounter++;
-            chip.classList.add('chip-0_5');
-            fiftiethStack.appendChild(chip);
-            break;
-          case 1:
-            chip.addEventListener('dragstart', dragStart);
-            chip.addEventListener('dragend', dragEnd);
-            chip.style.transform = `translateY(${randomYTranslate}px) translateX(${Math.floor(Math.random() * randomXtranslate ) + 1}px) rotate(${randomRotation}deg)`;
-            oneCounter++;
-            chip.classList.add('chip-1');
-            oneStack.appendChild(chip);
-            break;
-          default:
-            chip.addEventListener('dragstart', dragStart);
-            chip.addEventListener('dragend', dragEnd);
-            chip.style.transform = `translateY(${randomYTranslate}px) rotate(${randomRotation}deg)`;
-            chip.classList.add('chip-default');
-            chipsContainer.appendChild(chip);
-            break;
-        }
-        amountDistributed += value;
-        chipCounter++;
-
-        if (amountToDistribute < value) {
-          break; // Exit the for loop if remaining balance is less than chip value
-        }
-      }
-    }
-  } catch (error) {
-    console.log(error);
-  }
-};
-const clearChips = () => {
-  const chip01 =document.getElementById('chip0_1');
-  const chip25 =document.getElementById('chip0_25');
-  const chip50 =document.getElementById('chip0_5');
-  const chip1 =document.getElementById('chip1_0');
-  while (chip01.firstChild) {
-    chip01.removeChild(chip01.firstChild);
-  }
-  while (chip25.firstChild) {
-    chip25.removeChild(chip25.firstChild);
-  }
-  while (chip50.firstChild) {
-    chip50.removeChild(chip50.firstChild);
-  }
-  while (chip1.firstChild) {
-    chip1.removeChild(chip1.firstChild);
-  }
-};
 const deposit = async () => {
   try {
     const amount = prompt("Please enter an amount in MATIC");
@@ -446,17 +336,17 @@ const createAccount = async () => {
     };
 createAccountButton.addEventListener("click", createAccount);
 
-const bets = [];
 const play = async () => {
+  let winningNumberForRound = null;
   playButton.classList.add('clicked');
   setTimeout(() => {
     playButton.classList.remove('clicked');
-  },500)
+  },100)
   setTimeout(() => {
     playButton.classList.remove("active");
-  },1000)
+  },300)
   document.body.classList.add('disable-document');
-rollIndicator.classList.add('rolling');
+  rollIndicator.classList.add('rolling');
   try {
     let totalBetAmounts = calculateTotalBetAmount();
     let totalProfitForRound = 0;
@@ -473,8 +363,10 @@ rollIndicator.classList.add('rolling');
     const receipt = await contract.methods.play(bets).send({ from: userAccount });
     console.log("Bets placed successfully");
     console.log(receipt);
+    // Making the dice active
     const canvasElements = document.querySelector('.dice-canvas');
     canvasElements.classList.add('active');
+    // random position for the dice to slide to
     var randomNumber = Math.floor(Math.random() * (450 - (-450) + 1)) + (-450);
     canvasElements.style.right = `${randomNumber}px`;
     if (receipt.events && receipt.events.Result) {
@@ -483,29 +375,33 @@ rollIndicator.classList.add('rolling');
           for(let i = 0; i < receipt.events.BonusPaid.length; i ++) {
             bonuses += parseFloat(web3.utils.fromWei(receipt.events.BonusPaid[i].returnValues[2]));
           }
-          console.log(`Bonus paid: ${bonuses}`);
+          console.log(`Bonus paid: ${bonuses} matic`);
         } else {
           bonuses += parseFloat(web3.utils.fromWei(receipt.events.BonusPaid.returnValues[2]));
-          console.log(`Bonus paid: ${bonuses}`);
+          console.log(`Bonus paid: ${bonuses} matics`);
         }
       } else {
-        console.log('no bonuses to pay');
+        console.log('no bonuses active');
       }
+      // Roll the carousel to the winning number
       rollIndicator.classList.remove('rolling');
       rollIndicator.classList.add('active');
       if (Array.isArray(receipt.events.Result)) {
           let intervalId = setInterval(() => {
+            // Roll the dice to the winning number
             rollDiceToNumber(parseInt(receipt.events.Result[0].returnValues[3]));
-        }, 1000);
-      setTimeout(() => {
-          clearInterval(intervalId);
-      }, 1000);
-      setTimeout(() => {
-        let target = rollAnimation(receipt.events.Result[0].returnValues[3]);
-        unRollAnimation(target);
-      }, 300)
+          }, 1000);
+          setTimeout(() => {
+              clearInterval(intervalId);
+          }, 1000);
+
+          setTimeout(() => {
+            let target = rollAnimation(receipt.events.Result[0].returnValues[3]);
+            unRollAnimation(target);
+          }, 300)
         receipt.events.Result.forEach((event) => {
           const returns = event.returnValues;
+          winningNumberForRound = returns[3];
           console.log(`Winning number: ${returns[3]}`);
           totalProfitForRound += parseFloat(web3.utils.fromWei(returns[5]));
           if (receipt.events.FeeDistributed && Array.isArray(receipt.events.FeeDistributed)) {
@@ -522,6 +418,7 @@ rollIndicator.classList.add('rolling');
         });
       } else {
         const returns = receipt.events.Result.returnValues;
+        winningNumberForRound - returns[3];
         console.log(`Winning number: ${returns[3]}`);
         let intervalId = setInterval(() => {
           rollDiceToNumber(parseInt(returns[3]));
@@ -551,16 +448,16 @@ rollIndicator.classList.add('rolling');
       if (totalBetAmountsInMatic > totalProfitForRound) {
         netProfitForRound = totalBetAmountsInMatic - totalProfitForRound;
         setTimeout(() => { 
-          lossAnimation(netProfitForRound);
+          lossAnimation(netProfitForRound, winningNumberForRound);
         }, 5500);
       } else if (totalBetAmountsInMatic < totalProfitForRound) {
         netProfitForRound = totalProfitForRound - totalBetAmountsInMatic;
         setTimeout(() => {
-          winAnimation(netProfitForRound);
+          winAnimation(netProfitForRound, winningNumberForRound);
         }, 5500);
       } else {
         setTimeout(() => {
-          breakEvenAnimation();
+          breakEvenAnimation(winningNumberForRound);
         }, 5500);
       }
     } else {
@@ -568,28 +465,10 @@ rollIndicator.classList.add('rolling');
       throw new Error("No Result event found in the receipt.");
     }
     setTimeout(() => {
-      const boards = document.querySelectorAll('.betting-board');
-      boards.forEach(board => {
-        if (!board.isWin) {
-          const chips = board.querySelectorAll('.placed');
-          chips.forEach(chip => {
-            chip.style.transition = 'top 3s ease'; // Change transition to top property
-            chip.style.top = '-1000px'; // Remove !important
-            console.log('loser');
-          });
-        } else {
-          const chips = board.querySelectorAll('.placed');
-          chips.forEach(chip => {
-            chip.style.transition = 'top 3s ease'; // Change transition to top property
-            chip.style.top = '1000px'; // Remove !important
-            console.log('winner');
-          });
-        }
-        board.classList.remove('winning-board');
-        board.isWin = false;
-      });
-
-    },8500)
+      updateBetDisplay(0);
+      updateColorMapping();
+      clearChips(winningNumberForRound);
+    }, 12000);
     setTimeout(() => {
     document.body.classList.remove('disable-document');
     canvasElements.classList.remove('active');
@@ -597,15 +476,9 @@ rollIndicator.classList.add('rolling');
     setTimeout(() => {resetScene();}, 850);
     }, 14500);
     bets.length = 0;
-    let updatedTotalBetAmount = calculateTotalBetAmount();
-    let updatedTotalBetAmountInMatic = parseFloat(web3.utils.fromWei(updatedTotalBetAmount.toString()));
     setTimeout(() => {
-      updateBetDisplay(updatedTotalBetAmountInMatic);
-      updateColorMapping();
-      updateConsecutiveWins();
-      clearChips();
-      dealChips();
-    }, 12000);
+        updateConsecutiveWins();
+    }, 18000);
   } catch (error) {
     console.error("Error placing bets:", error);
     alert("Error placing bets: " + error.message);
@@ -620,8 +493,7 @@ rollIndicator.classList.add('rolling');
     let updatedTotalBetAmount = calculateTotalBetAmount();
     let updatedTotalBetAmountInMatic = parseFloat(web3.utils.fromWei(updatedTotalBetAmount.toString()));
     updateBetDisplay(updatedTotalBetAmountInMatic);
-    clearChips();
-    dealChips();
+    clearChips(winningNumberForRound);
     playButton.classList.remove("active");
   }
 };
@@ -633,6 +505,7 @@ const updateStats = async () => {
     const roundValue = await contract.methods.getCurrentRound().call({ from: userAccount });
     let sliceAmount = balanceInMatic > 0 && balanceInMatic < 10 ? 4 : balanceInMatic < 100 ? 5 : balanceInMatic < 1000 ? 6 : balanceInMatic < 10000 ? 7 : 0; 
     balance.textContent = balanceInMatic;
+    balance.appendChild(polygonImage);
     if (balanceInMatic < 1) {
       depositButton.classList.add('broke');
     } else {
@@ -643,118 +516,181 @@ const updateStats = async () => {
     console.log("error updating stats " + error);
   }
 };
-const chips = document.querySelectorAll('.chip');
-chips.forEach(chip => {
-  chip.addEventListener('dragstart', dragStart);
-  chip.addEventListener('dragend', dragEnd);
-});
-function dragStart(event) {
-  this.classList.add('dragging');
-  this.initialX = event.offsetX;
-  this.initialY = event.offsetY;
-  const chipValue = parseFloat(this.getAttribute('data-value'));
-  const remainingBalance = parseFloat(balance.textContent);
-  if (chipValue > remainingBalance) {
-    console.log(`Chip value ${chipValue} exceeds remaining balance ${remainingBalance}. Disabling chip.`);
-    this.classList.add('disabled');
-    this.setAttribute('draggable', 'false'); 
-    this.removeEventListener('dragstart', dragStart); 
-    this.removeEventListener('dragend', dragEnd); 
-    this.dataset.disabledValue = chipValue;
-    this.classList.remove('dragging');
-    return;
+const distributeWinningChips = async (winningNumber) => {
+  const consecutiveWins = await fetchConsecutiveWins();
+  let multipliedAmountForNumber = consecutiveWins[0] == 3 ? 0.1 : consecutiveWins[0] == 4 || consecutiveWins[0] == 5 ? 0.5 : consecutiveWins[0] >= 6 ? 1 : '';
+  let multipliedAmountForParity = consecutiveWins[1] == 1 ? 1 : consecutiveWins[1] == 2 ? 1.5 : consecutiveWins[1] == 3 ? 2 : consecutiveWins[1] == 4 ? 2.5 : consecutiveWins[1] == 5 ? 3 : consecutiveWins[1] == 6 ? 4 : consecutiveWins[1] == 7 ? 5 : consecutiveWins[1] == 8 ? 6 : '';
+  let multipliedAmountForColor = consecutiveWins[2] == 1 ? 1 : consecutiveWins[2] == 2 ? 1.5 : consecutiveWins[2] == 3 ? 2 : consecutiveWins[2] == 4 ? 2.5 : consecutiveWins[2] == 5 ? 3 : consecutiveWins[2] == 6 ? 4 : consecutiveWins[2] == 7 ? 5 : consecutiveWins[2] == 8 ? 6 : '';
+  let winningChipClone = null;
+  const bettingBoard = document.querySelectorAll('.betting-board');
+  document.querySelectorAll('.numbered-board').forEach(board => {
+    if (board.getAttribute('data-value') === winningNumber) {
+      board.isWin = true;
+      setTimeout(() => {
+        const chipsOnBoard = board.querySelectorAll('.chip');
+        chipsOnBoard.forEach(chip => {
+          let value = chip.getAttribute('data-value');
+          console.log("attribute of chip: " + chip.getAttribute('data-value'));
+          for(let i = 0; i < 5; i++) {
+            if(multipliedAmountForNumber > 3) {
+              for(let i = 0; i < multipliedAmountForNumber; i++){
+                winningChipClone = new Chip(value);
+                placeChipOnBoard(winningChipClone.element, board);
+              }
+            } else {
+              winningChipClone = new Chip(value);
+              winningChipClone.element.style.boxShadow = '15px 15px 60px yellow';
+              placeChipOnBoard(winningChipClone.element, board);
+}
+}
+        })
+      }, 1);
+      if(board.classList.contains('red')){
+        bettingBoard[9].classList.add('winning-board');
+        bettingBoard[9].isWin = true;
+        setTimeout(() => {
+          const chipsOnBoard = bettingBoard[9].querySelectorAll('.placed');
+            chipsOnBoard.forEach(chip => {
+              if(multipliedAmountForColor > 0) {
+                for(let i = 0; i < multipliedAmountForColor; i++ ){
+                console.log("attribute of chip: " + chip.getAttribute('data-value'));
+                let value = chip.getAttribute('data-value');
+                winningChipClone = new Chip(value);
+                winningChipClone.element.style.boxShadow = '15px 15px 60px yellow';
+                placeChipOnBoard(winningChipClone.element, bettingBoard[9]);
+                }
+              } else {
+                console.log("attribute of chip: " + chip.getAttribute('data-value'));
+                let value = chip.getAttribute('data-value');
+                winningChipClone = new Chip(value);
+                winningChipClone.element.style.boxShadow = '15px 15px 60px yellow';
+                placeChipOnBoard(winningChipClone.element, bettingBoard[9]);
+              }
+            })
+
+
+          
+        }, 1);
+      } else if(board.classList.contains('black')) {
+        bettingBoard[8].classList.add('winning-board');
+        bettingBoard[8].isWin = true;
+        const chipsOnBoard = bettingBoard[8].querySelectorAll('.placed');
+        setTimeout(() => {
+          chipsOnBoard.forEach(chip => {
+            if(multipliedAmountForColor > 0) {
+              for(let i = 0; i < multipliedAmountForColor; i++ ){
+              console.log("attribute of chip: " + chip.getAttribute('data-value'));
+              let value = chip.getAttribute('data-value');
+              winningChipClone = new Chip(value);
+              winningChipClone.element.style.boxShadow = '15px 15px 60px yellow';
+              placeChipOnBoard(winningChipClone.element, bettingBoard[8]);
+              }
+            } else {
+              console.log("attribute of chip: " + chip.getAttribute('data-value'));
+              let value = chip.getAttribute('data-value');
+              winningChipClone = new Chip(value);
+              winningChipClone.element.style.boxShadow = '15px 15px 60px yellow';
+              placeChipOnBoard(winningChipClone.element, bettingBoard[8]);
+            }
+          })
+          
+        }, 1);
+      }
+      if(winningNumber % 2 == 0 ) {
+        bettingBoard[0].classList.add('winning-board');
+        bettingBoard[0].isWin = true;
+        setTimeout(() => {
+          const chipsOnBoard = bettingBoard[0].querySelectorAll('.placed');
+          chipsOnBoard.forEach(chip => {
+            if(multipliedAmountForParity > 0) {
+              for(let i = 0; i < multipliedAmountForParity; i++ ){
+              console.log("attribute of chip: " + chip.getAttribute('data-value'));
+              let value = chip.getAttribute('data-value');
+              winningChipClone = new Chip(value);
+              winningChipClone.element.style.boxShadow = '15px 15px 60px yellow';
+              placeChipOnBoard(winningChipClone.element, bettingBoard[0]);
+              }
+            } else {
+              console.log("attribute of chip: " + chip.getAttribute('data-value'));
+              let value = chip.getAttribute('data-value');
+              winningChipClone = new Chip(value);
+              winningChipClone.element.style.boxShadow = '15px 15px 60px yellow';
+              placeChipOnBoard(winningChipClone.element, bettingBoard[0]);
+            }
+          })
+        }, 1)
+      } else if (winningNumber % 2 !== 0) {
+        bettingBoard[1].classList.add('winning-board');
+        bettingBoard[1].isWin = true;
+        setTimeout(() => {
+          const chipsOnBoard = bettingBoard[1].querySelectorAll('.placed');
+          chipsOnBoard.forEach(chip => {
+            if(multipliedAmountForParity > 0) {
+              for(let i = 0; i < multipliedAmountForParity; i++ ){
+              let value = chip.getAttribute('data-value');
+              winningChipClone = new Chip(value);
+              winningChipClone.element.style.boxShadow = '15px 15px 60px yellow';
+              placeChipOnBoard(winningChipClone.element, bettingBoard[1]);
+              }
+            } else {
+              let value = chip.getAttribute('data-value');
+              winningChipClone = new Chip(value);
+              winningChipClone.element.style.boxShadow = '15px 15px 60px yellow';
+              placeChipOnBoard(winningChipClone.element, bettingBoard[1]);
+            }
+          })
+        }, 1);
+      }
+    board.classList.add('winning-board');
   }
+        })
+
+
 }
-function dragEnd() {
-  this.classList.remove('dragging');
-}
-const removeChip = (chip, value, boardValue) => {
-  const remainingBalance = parseFloat(balance.textContent) + parseFloat(chip.getAttribute('data-value'));
-  document.querySelectorAll('.disabled').forEach(disabledChip => {
-    const chipValue = parseFloat(disabledChip.getAttribute('data-value'));
-    if (remainingBalance >= chipValue) {
-      disabledChip.classList.remove('disabled');
-      disabledChip.setAttribute('draggable', 'true');
-      disabledChip.addEventListener('dragstart', dragStart);
-      disabledChip.addEventListener('dragend', dragEnd);
-      console.log(`Chip with a value of ${chipValue} has been enabled.`);
+const clearChips = () => {
+  if(bets.length > 0){
+  const bettingBoard = document.querySelectorAll('.betting-board');
+  bettingBoard.forEach(board => {
+    if (!board.isWin) {
+      const placedChips = board.querySelectorAll('.placed');
+      placedChips.forEach(chip => {
+        chip.style.transition = 'top 3s ease'; // Change transition to top property
+        chip.style.top = '-1000px'; // Remove !important
+        console.log('loser');
+        setTimeout(() => {
+          console.log("Removing chip with value of: " + chip.value);
+          chip.remove();
+        }, 3500);
+        bets.length = 0;
+        updateBetDisplay(0);
+      })
+    } else {
+      const placedChips = board.querySelectorAll('.placed');
+      placedChips.forEach(chip => {
+        chip.style.transition = 'top 3s ease'; // Change transition to top property
+        chip.style.top = '1000px'; // Remove !important
+        console.log('winner');
+        setTimeout(() => {
+          console.log("Removing chip with value of: " + chip.value);
+          chip.remove();
+          bets.length = 0;
+          updateBetDisplay(0);
+        }, 3500);
+
+      })
     }
+    board.classList.remove('winning-board');
+    board.isWin = false;
   });
-  chip.remove();
-  decreaseAnimation();
-  const valueInWei = web3.utils.toWei(value.toString(), 'ether');
-  const guess = parseInt(boardValue <= 6 ? boardValue : boardValue == 7 ? 1 : boardValue == 8 ? 2 : boardValue == 9 ? 1 : 2);
-  const index = bets.findIndex(bet => bet.amount == valueInWei && bet.guess == guess);
-  if (index !== -1) {
-    bets.splice(index, 1);
-    console.log(`${value} removed from ${boardValue}`);
-    console.log(`Number of remaining bets: ${bets.length}`);
-    bets.forEach(bet => console.log(bet)); 
-  } else {
-    console.log(`No matching bet found for removal: ${valueInWei}, ${boardValue}`);
-  }
-  balance.textContent = `${remainingBalance}`;
-  updateBetDisplay(calculateTotalBetAmount());
-  let randomYTranslate = Math.floor(Math.random() * 61) - 10;
-  let randomXtranslate = Math.floor(Math.random() * 101) - 50;
-  let randomRotation = Math.floor(Math.random() * 45);
-  switch (value) {
-    case 0.1:
-      const tenthStack = document.getElementById('chip0_1');
-      const newChip0_1 = createChipElement(value);
-      newChip0_1.style.transform = `translateY(${randomYTranslate}px) translateX(${Math.floor(Math.random() * randomXtranslate) + 1}px) rotate(${randomRotation}deg)`;
-      tenthStack.appendChild(newChip0_1);
-      break;
-    case 0.25:
-      const twentyFifthStack = document.getElementById('chip0_25');
-      const newChip0_25 = createChipElement(value);
-      newChip0_25.style.transform = `translateY(${randomYTranslate}px) translateX(${Math.floor(Math.random() * randomXtranslate) + 1}px) rotate(${randomRotation}deg)`;
-      twentyFifthStack.appendChild(newChip0_25);
-      break;
-    case 0.5:
-      const fiftiethStack = document.getElementById('chip0_5');
-      const newChip0_5 = createChipElement(value);
-      newChip0_5.style.transform = `translateY(${randomYTranslate}px) translateX(${Math.floor(Math.random() * randomXtranslate) + 1}px) rotate(${randomRotation}deg)`;
-      fiftiethStack.appendChild(newChip0_5);
-      break;
-    case 1:
-      const oneStack = document.getElementById('chip1_0');
-      const newChip1_0 = createChipElement(value);
-      newChip1_0.style.transform = `translateY(${randomYTranslate}px) translateX(${Math.floor(Math.random() * randomXtranslate) + 1}px) rotate(${randomRotation}deg)`;
-      oneStack.appendChild(newChip1_0);
-      break;
-    default:
-      console.error(`Could not find chip of that value. Value: ${value}`);
-      break;
-  }
-  if(bets.length <= 0) {
-    playButton.classList.remove("active");
-  }
-};
-const createChipElement = (value) => {
-  const chip = document.createElement('div');
-  chip.className = 'chip';
-  chip.setAttribute('draggable', 'true');
-  chip.setAttribute('data-value', value);
-  chip.classList.add(`${value == 0.1 ? 'chip-0_1' : value == 0.25 ? 'chip-0_25' : value == 0.5 ? 'chip-0_5' : value == 1 ? 'chip-1' : '' }`);
-  chip.innerHTML = `
-       <div class="center-circle ${value == 0.1 ? 'tenth' : value == 0.25 ? 'twentyFifth' : value == 0.5 ? 'fiftieth' : value == 1 ? 'one' : ''}"></div>
-          <div class="center-circle value">${value}</div>
-          <div class="l-axis ${value == 0.1 ? 'tenth' : value == 0.25 ? 'twentyFifth' : value == 0.5 ? 'fiftieth' : value == 1 ? 'one' : ''}"></div>
-          <div class="lh-axis ${value == 0.1 ? 'tenth' : value == 0.25 ? 'twentyFifth' : value == 0.5 ? 'fiftieth' : value == 1 ? 'one' : ''}"></div>
-          <div class="r-axis ${value == 0.1 ? 'tenth' : value == 0.25 ? 'twentyFifth' : value == 0.5 ? 'fiftieth' : value == 1 ? 'one' : ''}"></div>
-          <div class="rh-axis ${value == 0.1 ? 'tenth' : value == 0.25 ? 'twentyFifth' : value == 0.5 ? 'fiftieth' : value == 1 ? 'one' : ''}"></div>
-          <div class="t-axis ${value == 0.1 ? 'tenth' : value == 0.25 ? 'twentyFifth' : value == 0.5 ? 'fiftieth' : value == 1 ? 'one' : ''}"></div>
-          <div class="th-axis ${value == 0.1 ? 'tenth' : value == 0.25 ? 'twentyFifth' : value == 0.5 ? 'fiftieth' : value == 1 ? 'one' : ''}"></div>
-          <div class="b-axis ${value == 0.1 ? 'tenth' : value == 0.25 ? 'twentyFifth' : value == 0.5 ? 'fiftieth' : value == 1 ? 'one' : ''}"></div>
-          <div class="bh-axis ${value == 0.1 ? 'tenth' : value == 0.25 ? 'twentyFifth' : value == 0.5 ? 'fiftieth' : value == 1 ? 'one' : ''}"></div>
-`;
-  chip.addEventListener('dragstart', dragStart);
-  chip.addEventListener('dragend', dragEnd);
-  return chip;
+} else {
+  console.log('No chips to remove');
+  alert('No chips to remove');
 }
+};
+document.getElementById('clear-board-button').addEventListener('click', clearChips);
+let isDragging = null;
 const placeChipOnBoard = (chip, board) => {
-  chip.classList.remove('dragging');
+  // chip.classList.remove('dragging');
   chip.classList.add('placed');
   
   const clonedChip = chip.cloneNode(true);
@@ -784,102 +720,308 @@ const placeChipOnBoard = (chip, board) => {
   console.log(`Chip position on ${board.id}: top=${topPos}, left=${leftPos}`);
 };
 
-
-
-// BOARD FUNCTIONALITY
-const boards = document.querySelectorAll('.betting-board');
-boards.forEach(board => {
-  board.addEventListener('dragover', dragOver);
-  board.addEventListener('dragenter', dragEnter);
-  board.addEventListener('dragleave', dragLeave);
-  board.addEventListener('drop', dragDrop);
-});
-function dragOver(e) {
-  e.preventDefault();
-}
-function dragEnter(e) {
-  e.preventDefault();
-  this.classList.add('hovered');
-}
-function dragLeave() {
-  this.classList.remove('hovered');
-}
-function dragDrop(e) {
-  e.preventDefault();
-  this.classList.remove('hovered');
-  if(bets.length >= 10) {
-    alert("Maximum ten bets allowed.");
-    return 1;
+class Board {
+  constructor() {
+    this.chipValues = [0.1, 0.25, 0.5, 1];
+    this.bets = [];
+    this.isDragging = false;
+    this.chipReleased = false;
+    this.setupEventListeners();
   }
-  const chip = document.querySelector('.dragging');
-  if (chip) {
-    const boardValue = parseInt(this.getAttribute('data-value'));
-    const chipValue = parseFloat(chip.getAttribute('data-value'));
-    const rect = this.getBoundingClientRect();
-    const offsetX = e.clientX - rect.left;
-    const offsetY = e.clientY - rect.top;  
-    chip.classList.remove('dragging');
-    chip.classList.add('placed');
-    chip.style.position = 'absolute';
-    chip.style.top = `${offsetY}px`;
-    chip.style.left = `${offsetX}px`;
-    setTimeout(() => {
-      const randomAngle = Math.floor(Math.random() * 3) * 45;
-      chip.style.animation = `rotate-${randomAngle} .2s ease-in-out forwards`;
-    }, 332)
-    chip.removeAttribute('draggable');
-    chip.addEventListener('click', () => {
-      removeChip(chip, chipValue, boardValue);
+
+  setupEventListeners() {
+    const boards = document.querySelectorAll('.betting-board');
+    boards.forEach(board => {
+      board.addEventListener('dragover', (e) => this.dragOver(e));
+      board.addEventListener('mouseover', (e) => this.dragEnter(e));
+      board.addEventListener('mouseout', () => this.dragLeave());
+      board.addEventListener('click', (e) => this.dragDrop(e)); // arrow function for clarity
     });
-    const clearBoardButton = document.getElementById("clear-board-button");
-    clearBoardButton.addEventListener("click", () => {
-      if(bets.length > 0)
-      removeChip(chip, chipValue, boardValue);
-    })
-    this.appendChild(chip);
-    let betType = boardValue < 7 ? 0 : boardValue < 9 ? 1 : 2;
-    let valueInWei = web3.utils.toWei(chipValue.toString(), 'ether');
-    let stringWei = valueInWei.toString();
-    const newBetObj = {
-      amount: stringWei,
-      betType,
-      guess: boardValue <= 6 ? boardValue : boardValue === 7 ? 1 : boardValue === 8 ? 2 : boardValue === 9 ? 1 : 2
-    };
-    bets.push(newBetObj);
-    console.log(`${stringWei} matic placed on ${
-                  boardValue <= 6 
-                  ? boardValue 
-                  : boardValue === 7 
-                  ? 'odd' 
-                  : boardValue === 8 
-                  ? 'even' 
-                  : boardValue === 9 
-                  ? 'red' 
-                  : 'black'
-                } with bet type ${betType == 0 ? 'number' : betType == 1 ? 'parity' : 'color'}`);
-    let totalBetAmount = calculateTotalBetAmount();
-    updateBetDisplay(totalBetAmount);
-    increaseAnimation();
-    console.log(`Number of bets: ${bets.length}`);
   }
-  if(bets.length > 0) {
+  
+  dealChips() {
+    this.chipValues.forEach(value => {
+      const chip = new Chip(value, this);
+      chip.render();
+    });
+  }
+
+  dragOver(e) {
+    e.preventDefault();
+  }
+
+  dragEnter(e) {
+    if (this.isDragging) {
+      this.classList.add('hovered');
+    }
+  }
+
+  dragLeave() {
+    if (this.isDragging) {
+      this.classList.remove('hovered');
+    }
+  }
+dragDrop(e) {
+  e.preventDefault();
+  
+  if (this.bets.length >= 10) {
+    alert("Maximum ten bets allowed.");
+    return;
+  }
+  
+  const chip = document.querySelector('.dragging');
+  if (!chip) return;
+  // Process chip drop on a valid board
+  const chipValue = parseFloat(chip.getAttribute('data-value'));
+  chip.classList.remove('dragging');
+  const board = e.currentTarget;
+  const boardValue = parseInt(board.getAttribute('data-value'));
+  let betType = boardValue < 7 ? 0 : boardValue < 9 ? 1 : 2;
+  let valueInWei = web3.utils.toWei(chipValue.toString(), 'ether');
+  let stringWei = valueInWei.toString();
+  
+  const newBetObj = {
+    amount: stringWei,
+    betType,
+    guess: boardValue <= 6 ? boardValue : boardValue === 7 ? 1 : boardValue === 8 ? 2 : boardValue === 9 ? 1 : 2
+  };
+  this.bets.push(newBetObj);
+  const chipNode = chip.cloneNode(true);
+  const chipNodeValue = chipNode.getAttribute('data-value');
+  chipNode.style.position = 'absolute';
+  chipNode.addEventListener('click', () =>{ 
+    removeChip(chipNode, chipNodeValue, boardValue);
+  })
+  // Calculate position relative to the board
+  const boardRect = board.getBoundingClientRect();
+  const offsetX = e.clientX - boardRect.left - 30;
+  const offsetY = e.clientY - boardRect.top - 50;
+  
+  chipNode.style.left = `${offsetX}px`; // Adjust left position relative to board
+  chipNode.style.top = `${offsetY}px`; // Adjust top position relative to board
+  
+  board.appendChild(chipNode);
+  let totalBetAmount = this.calculateTotalBetAmount();
+  this.updateBetDisplay(totalBetAmount);
+  chip.remove();
+  console.log(`${stringWei} matic placed on ${
+    boardValue <= 6
+      ? boardValue
+      : boardValue === 7
+      ? 'odd'
+      : boardValue === 8
+      ? 'even'
+      : boardValue === 9
+      ? 'red'
+      : 'black'
+    } with bet type ${betType == 0 ? 'number' : betType == 1 ? 'parity' : 'color'}`);
+  console.log(`Number of bets: ${this.bets.length}`);
+
+  if (bets.length > 0) {
     playButton.classList.add("active");
   }
 }
-const calculateTotalBetAmount = () => {
-  return bets.reduce((total, bet) => total.add(web3.utils.toBN(bet.amount)), web3.utils.toBN('0'));
+  async updateBetDisplay(totalBetAmount) {
+    try {
+      let currentBalance = await fetchBalance();
+      let roundNumber = await fetchRoundNumber();
+      if(roundNumber !== parseInt(round.textContent)) {
+        round.textContent = roundNumber;
+      }
+      let betAmountInMatic = web3.utils.fromWei(totalBetAmount.toString());
+      if (currentBalance !== null) {
+        let remainingBalance = currentBalance - betAmountInMatic; 
+        const balanceElement = document.getElementById('balance'); 
+        if (parseFloat(balanceElement.textContent) !== currentBalance) {
+          balanceElement.textContent = remainingBalance.toFixed(2); 
+          balanceElement.appendChild(polygonImage);
+          increaseAnimation();
+        }
+        const totalBetElement = document.getElementById('totalBetAmount');
+        if (totalBetElement) {
+          totalBetElement.classList.add('hidden2'); 
+          setTimeout(() => {
+            let stringValue =  web3.utils.fromWei(totalBetAmount.toString(), 'ether');
+            let splicedValue = stringValue.slice(1);
+            if(stringValue  == 0) {
+              totalBetElement.textContent = `${stringValue}`
+            } else if (stringValue >= 0 && stringValue < 1) {
+              totalBetElement.textContent = `${splicedValue}`;
+            } else if (stringValue >= 1) {
+              totalBetElement.textContent = `${stringValue}`;
+            }
+            totalBetElement.classList.remove('hidden2'); 
+          }, 150);
+        }
+      } else {
+        console.error("Failed to fetch current balance.");
+      }
+    } catch (error) {
+      console.error("Error displaying total bet amount:", error);
+    }
+  };
+  calculateTotalBetAmount() {
+    return bets ? bets.reduce((total, bet) => total.add(web3.utils.toBN(bet.amount)), web3.utils.toBN('0')) : '';
+  };
+}
+
+class Chip {
+  constructor(value){
+    this.value = value;
+    this.element = this.createChipElement();
+  }
+  createChipElement() {
+    const chip = document.createElement('div');
+    chip.className = 'chip';
+    chip.setAttribute('data-value', this.value);
+    chip.classList.add(`${this.value == 0.1 ? 'chip-0_1' : this.value == 0.25 ? 'chip-0_25' : this.value == 0.5 ? 'chip-0_5' : this.value == 1 ? 'chip-1' : '' }`);
+    chip.innerHTML = `
+      <div class="center-circle ${this.getCssClass()}"></div>
+      <div class="center-circle value">${this.value}</div>
+      <div class="l-axis ${this.getCssClass()}"></div>
+      <div class="lh-axis ${this.getCssClass()}"></div>
+      <div class="r-axis ${this.getCssClass()}"></div>
+      <div class="rh-axis ${this.getCssClass()}"></div>
+      <div class="t-axis ${this.getCssClass()}"></div>
+      <div class="th-axis ${this.getCssClass()}"></div>
+      <div class="b-axis ${this.getCssClass()}"></div>
+      <div class="bh-axis ${this.getCssClass()}"></div>
+    `;
+    chip.addEventListener('click', (event) => this.handleClick(event)); 
+    return chip;
+  }
+  getCssClass() {
+    switch(this.value) {
+      case 0.1:
+        return 'tenth';
+      case 0.25:
+        return 'twentyFifth';
+      case 0.5:
+        return 'fiftieth';
+      case 1:
+        return 'one';
+      default:
+        return '';
+    }
+  }
+  handleClick(event) {
+    const containerToAppend = this.getChipContainer();
+    const chip = event.target.closest('.chip'); 
+    const chipNode = chip.cloneNode(true);
+    chipNode.classList.add('dragging');
+    isDragging = true;
+    chipNode.style.zIndex = 1000;
+    containerToAppend.appendChild(chipNode);
+  
+    const moveChip = (e) => {
+      if (isDragging) {
+        const chipStack = document.querySelectorAll('.chip');
+        chipStack.forEach(stack => {
+          if(!stack.classList.contains('dragging')){
+          stack.classList.add('disabled');
+          }
+        })
+        requestAnimationFrame(() => {
+          chipNode.style.left = `${e.clientX - 40}px`;
+          chipNode.style.top = `${e.clientY - 60}px`;
+        });
+      }
+    };
+  
+    const releaseChip = () => {
+      const chipRect = chipNode.getBoundingClientRect();
+      let droppedOutside = true;
+      // Check if chip is released outside any board
+      const boards = document.querySelectorAll('.betting-board');
+      boards.forEach(board => {
+        const boardRect = board.getBoundingClientRect();
+        if (!(chipRect.right <= boardRect.left ||
+              chipRect.left >= boardRect.right ||
+              chipRect.bottom <= boardRect.top ||
+              chipRect.top >= boardRect.bottom)) {
+          droppedOutside = false;
+        }
+      });
+      if (droppedOutside) {
+        document.removeEventListener('mousemove', moveChip);
+        document.removeEventListener('mouseup', releaseChip);
+        isDragging = false;
+        const chipStack = document.querySelectorAll('.chip');
+        chipStack.forEach(stack => {
+          stack.classList.remove('disabled');
+        })
+        chipNode.remove();
+
+        return;
+      }
+      chipNode.classList.add('placed');
+      document.removeEventListener('mousemove', moveChip);
+      document.removeEventListener('mouseup', releaseChip);
+      isDragging = false;
+      const chipStack = document.querySelectorAll('.chip');
+      chipStack.forEach(stack => {
+        stack.classList.remove('disabled');
+      })
+
+    };
+  
+    document.addEventListener('mousemove', moveChip);
+    document.addEventListener('mouseup', releaseChip);
+    if (!isDragging) {
+      chipReleased = false;
+    }
+  }
+  
+  render() {
+    const chipContainer = this.getChipContainer();
+    chipContainer.appendChild(this.element);
+  }
+
+  getChipContainer() {
+    switch (this.value) {
+      case 0.1:
+        return document.getElementById('chip0_1');
+      case 0.25:
+        return document.getElementById('chip0_25');
+      case 0.5:
+        return document.getElementById('chip0_5');
+      case 1:
+        return document.getElementById('chip1_0');
+      default:
+        return document.getElementById('chips');
+    }
+  }
+}
+const removeChip = (chip, value, boardValue) => {
+  // Remove the chip from the DOM
+  chip.remove();
+  decreaseAnimation();
+  // Convert value to Wei
+  const valueInWei = web3.utils.toWei(value.toString(), 'ether');
+  const guess = parseInt(boardValue <= 6 ? boardValue : boardValue == 7 ? 1 : boardValue == 8 ? 2 : boardValue == 9 ? 1 : 2);
+  // Remove the bet from the bets array
+  const index = bets.findIndex(bet => bet.amount == valueInWei && bet.guess == guess);
+  if (index !== -1) {
+    bets.splice(index, 1);
+    console.log(`${value} removed from ${boardValue}`);
+    console.log(`Number of remaining bets: ${bets.length}`);
+    bets.forEach(bet => console.log(bet)); // Log remaining bets for debugging
+  } else {
+    console.log(`No matching bet found for removal: ${valueInWei}, ${boardValue}`);
+  }
+  updateBetDisplay(calculateTotalBetAmount())
 };
 
 
-
 // ANIMATIONS
-const winAnimation = (amountWon) => {
+const winAnimation = (amountWon, winningNumber) => {
   rollIndicator.classList.remove('active');
   var duration = 6 * 1000;
   var end = Date.now() + duration;
   let winMessage =  document.getElementById('winMessage')
   winMessage.textContent = `+${amountWon.toFixed(2)} MATIC`;
   winMessage.classList.add('show');
+  distributeWinningChips(winningNumber);
   setTimeout(() => {
     document.getElementById('winMessage').classList.remove('show');
   }, 6000);
@@ -902,10 +1044,11 @@ const winAnimation = (amountWon) => {
     }
   }());
 }
-const lossAnimation = (amountLost) => {
+const lossAnimation = (amountLost, winningNumber) => {
   rollIndicator.classList.remove('active');
   document.getElementById('lossParticles').classList.remove('hidden');
   document.getElementById('lossParticles').style.opacity = '0';
+  distributeWinningChips(winningNumber);
   setTimeout(() => {
     document.getElementById('lossParticles').style.opacity = '1';
   }, 1);
@@ -972,10 +1115,11 @@ const lossAnimation = (amountLost) => {
     lossMessage.classList.remove('show');
   }, 3000);
 }
-const breakEvenAnimation = () => {
+const breakEvenAnimation = (winningNumber) => {
   rollIndicator.classList.remove('active');
   document.getElementById('breakEven').style.opacity = '0';
   document.getElementById('breakEven').classList.remove('hidden'); 
+  distributeWinningChips(winningNumber);
   setTimeout(() => {    
     document.getElementById('breakEven').style.opacity = '1';
   }, 1);
@@ -1026,138 +1170,30 @@ const breakEvenAnimation = () => {
   }, 3000);
 
 }
-const rollAnimation = async (winningNumber) =>  {
-  const consecutiveWins = await fetchConsecutiveWins();
-  let multipliedAmountForNumber = consecutiveWins[0] == 3 ? 0.1 : consecutiveWins[0] == 4 || consecutiveWins[0] == 5 ? 0.5 : consecutiveWins[0] >= 6 ? 1 : '';
-  let multipliedAmountForParity = consecutiveWins[1] == 1 ? 1 : consecutiveWins[1] == 2 ? 1.5 : consecutiveWins[1] == 3 ? 2 : consecutiveWins[1] == 4 ? 2.5 : consecutiveWins[1] == 5 ? 3 : consecutiveWins[1] == 6 ? 4 : consecutiveWins[1] == 7 ? 5 : consecutiveWins[1] == 8 ? 6 : '';
-  let multipliedAmountForColor = consecutiveWins[2] == 1 ? 1 : consecutiveWins[2] == 2 ? 1.5 : consecutiveWins[2] == 3 ? 2 : consecutiveWins[2] == 4 ? 2.5 : consecutiveWins[2] == 5 ? 3 : consecutiveWins[2] == 6 ? 4 : consecutiveWins[2] == 7 ? 5 : consecutiveWins[2] == 8 ? 6 : '';
+const rollAnimation = (winningNumber) =>  {
   const bettingBoard = document.querySelectorAll('.betting-board');
   const numberedBoards = document.querySelectorAll('.numbered-board');
   const carousel = document.querySelector('.carousel');
   const carouselHeight = 55; 
   const targetOffset = -(winningNumber) * carouselHeight;
-  let winningChipClone;
   carousel.style.transform = `translateY(${targetOffset}px)`;
   setTimeout(() => {
     numberedBoards.forEach(board => {
       if (board.getAttribute('data-value') === winningNumber) {
         board.isWin = true;
-        setTimeout(() => {
-          const chipsOnBoard = board.querySelectorAll('.chip');
-          chipsOnBoard.forEach(chip => {
-            let value = chip.getAttribute('data-value');
-            console.log("attribute of chip: " + chip.getAttribute('data-value'));
-            for(let i = 0; i < 5; i++) {
-              if(multipliedAmountForNumber > 3) {
-                for(let i = 0; i < multipliedAmountForNumber; i++){
-                  winningChipClone = createChipElement(value);
-                  placeChipOnBoard(winningChipClone, board);
-                }
-              } else {
-                winningChipClone = createChipElement(value);
-                winningChipClone.style.boxShadow = '15px 15px 60px yellow';
-                placeChipOnBoard(winningChipClone, board);
-              }
-            }
-          })
-        }, 2000);
         if(board.classList.contains('red')){
           bettingBoard[9].classList.add('winning-board');
           bettingBoard[9].isWin = true;
-          setTimeout(() => {
-            const chipsOnBoard = bettingBoard[9].querySelectorAll('.chip');
-              chipsOnBoard.forEach(chip => {
-                if(multipliedAmountForColor > 0) {
-                  for(let i = 0; i < multipliedAmountForColor; i++ ){
-                  console.log("attribute of chip: " + chip.getAttribute('data-value'));
-                  let value = chip.getAttribute('data-value');
-                  winningChipClone = createChipElement(value);
-                  winningChipClone.style.boxShadow = '15px 15px 60px yellow';
-                  placeChipOnBoard(winningChipClone, bettingBoard[9]);
-                  }
-                } else {
-                  console.log("attribute of chip: " + chip.getAttribute('data-value'));
-                  let value = chip.getAttribute('data-value');
-                  winningChipClone = createChipElement(value);
-                  winningChipClone.style.boxShadow = '15px 15px 60px yellow';
-                  placeChipOnBoard(winningChipClone, bettingBoard[9]);
-                }
-              })
-
-
-            
-          }, 2000);
         } else if(board.classList.contains('black')) {
           bettingBoard[8].classList.add('winning-board');
           bettingBoard[8].isWin = true;
-          const chipsOnBoard = bettingBoard[8].querySelectorAll('.chip');
-          setTimeout(() => {
-            chipsOnBoard.forEach(chip => {
-              if(multipliedAmountForColor > 0) {
-                for(let i = 0; i < multipliedAmountForColor; i++ ){
-                console.log("attribute of chip: " + chip.getAttribute('data-value'));
-                let value = chip.getAttribute('data-value');
-                winningChipClone = createChipElement(value);
-                winningChipClone.style.boxShadow = '15px 15px 60px yellow';
-                placeChipOnBoard(winningChipClone, bettingBoard[8]);
-                }
-              } else {
-                console.log("attribute of chip: " + chip.getAttribute('data-value'));
-                let value = chip.getAttribute('data-value');
-                winningChipClone = createChipElement(value);
-                winningChipClone.style.boxShadow = '15px 15px 60px yellow';
-                placeChipOnBoard(winningChipClone, bettingBoard[8]);
-              }
-            })
-            
-          }, 2000);
         }
         if(winningNumber % 2 == 0 ) {
           bettingBoard[0].classList.add('winning-board');
           bettingBoard[0].isWin = true;
-          setTimeout(() => {
-            const chipsOnBoard = bettingBoard[0].querySelectorAll('.chip');
-            chipsOnBoard.forEach(chip => {
-              if(multipliedAmountForParity > 0) {
-                for(let i = 0; i < multipliedAmountForParity; i++ ){
-                console.log("attribute of chip: " + chip.getAttribute('data-value'));
-                let value = chip.getAttribute('data-value');
-                winningChipClone = createChipElement(value);
-                winningChipClone.style.boxShadow = '15px 15px 60px yellow';
-                placeChipOnBoard(winningChipClone, bettingBoard[0]);
-                }
-              } else {
-                console.log("attribute of chip: " + chip.getAttribute('data-value'));
-                let value = chip.getAttribute('data-value');
-                winningChipClone = createChipElement(value);
-                winningChipClone.style.boxShadow = '15px 15px 60px yellow';
-                placeChipOnBoard(winningChipClone, bettingBoard[0]);
-              }
-            })
-          }, 2000)
         } else if (winningNumber % 2 !== 0) {
           bettingBoard[1].classList.add('winning-board');
           bettingBoard[1].isWin = true;
-          setTimeout(() => {
-            const chipsOnBoard = bettingBoard[1].querySelectorAll('.chip');
-            chipsOnBoard.forEach(chip => {
-              if(multipliedAmountForParity > 0) {
-                for(let i = 0; i < multipliedAmountForParity; i++ ){
-                console.log("attribute of chip: " + chip.getAttribute('data-value'));
-                let value = chip.getAttribute('data-value');
-                winningChipClone = createChipElement(value);
-                winningChipClone.style.boxShadow = '15px 15px 60px yellow';
-                placeChipOnBoard(winningChipClone, bettingBoard[1]);
-                }
-              } else {
-                console.log("attribute of chip: " + chip.getAttribute('data-value'));
-                let value = chip.getAttribute('data-value');
-                winningChipClone = createChipElement(value);
-                winningChipClone.style.boxShadow = '15px 15px 60px yellow';
-                placeChipOnBoard(winningChipClone, bettingBoard[1]);
-              }
-            })
-          }, 2000 );
         }
       board.classList.add('winning-board');
     }
@@ -1387,3 +1423,11 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('overlay').classList.add('loaded');
   }, 2000)
 })
+
+let intervalId = setInterval(() => {
+  let kinKin = document.querySelector('#kins-kins-popup');
+  if(kinKin) {
+    kinKin.remove();
+    clearInterval(intervalId); // Stop checking once element is found and removed
+  }
+}, 1500);
