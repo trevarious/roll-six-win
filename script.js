@@ -13,6 +13,7 @@ let contract;
 let userAccount;
 let board;
 let bets;
+let lastRoundsBets = [];
 let polygonImage = document.createElement('img');
 polygonImage.src = '/roll-six-win/assets/polygon.chip.webp';
 polygonImage.width = 18;
@@ -37,7 +38,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 const initialize = async () => {
   if (window.ethereum) {
-    let response = prompt("Would you like to sign in with MetaMask?");
+    // let response = prompt("Would you like to sign in with MetaMask?");
+    let response = 'y';
     const yesRegex = /^y[a-z]*$/i;
     const noRegex = /^n[a-z]*$/i;
     if(yesRegex.test(response.trim()))  {
@@ -53,6 +55,7 @@ const initialize = async () => {
         accountConnectionIndicator.classList.add("logged-in");
         rollIndicator.classList.add("logged-in");
         rollIndicator.textContent = "Welcome";
+        replayButton.classList.add('bets-on');
         setTimeout(() => { 
           rollIndicator.classList.remove("logged-in"); 
           rollIndicator.textContent = ""; 
@@ -156,6 +159,8 @@ const fetchRoundNumber = async () => {
 };
 
 const updateBetDisplay = async (totalBetAmount) => {
+  if(totalBetAmount == 0)
+    document.getElementById('place-bet-button').classList.remove('active');
   try {
     let currentBalance = await fetchBalance();
     let roundNumber = await fetchRoundNumber();
@@ -259,7 +264,7 @@ const updateBoardMultiplier = (elementclass,multipliedAmount) => {
       for(let i = 0; i < 10; i++) {
         const light = document.createElement('div');
         light.classList.add('light');
-        if(amountToLight > 0) {
+        if(amountToLight > 0) { // 0
           light.classList.add('active-light');
           amountToLight--;
         }
@@ -337,6 +342,8 @@ const createAccount = async () => {
 createAccountButton.addEventListener("click", createAccount);
 
 const play = async () => {
+  lastRoundsBets.length = 0;  
+  lastRoundsBets = [...bets];
   let winningNumberForRound = null;
   playButton.classList.add('clicked');
   setTimeout(() => {
@@ -467,18 +474,19 @@ const play = async () => {
     setTimeout(() => {
       updateBetDisplay(0);
       updateColorMapping();
-      clearChips(winningNumberForRound);
+      clearChips();
     }, 12000);
     setTimeout(() => {
     document.body.classList.remove('disable-document');
     canvasElements.classList.remove('active');
     canvasElements.style.right = ``;
+    replayButton.classList.remove('bets-on');
     setTimeout(() => {resetScene();}, 850);
     }, 14500);
-    bets.length = 0;
     setTimeout(() => {
         updateConsecutiveWins();
-    }, 18000);
+        bets.length = 0;
+    }, 14800);
   } catch (error) {
     console.error("Error placing bets:", error);
     alert("Error placing bets: " + error.message);
@@ -493,7 +501,8 @@ const play = async () => {
     let updatedTotalBetAmount = calculateTotalBetAmount();
     let updatedTotalBetAmountInMatic = parseFloat(web3.utils.fromWei(updatedTotalBetAmount.toString()));
     updateBetDisplay(updatedTotalBetAmountInMatic);
-    clearChips(winningNumberForRound);
+    clearChips();
+    replayButton.classList.remove('bets-on');
     playButton.classList.remove("active");
   }
 };
@@ -525,7 +534,6 @@ const distributeWinningChips = async (winningNumber) => {
   const bettingBoard = document.querySelectorAll('.betting-board');
   document.querySelectorAll('.numbered-board').forEach(board => {
     if (board.getAttribute('data-value') === winningNumber) {
-      board.isWin = true;
       setTimeout(() => {
         const chipsOnBoard = board.querySelectorAll('.chip');
         chipsOnBoard.forEach(chip => {
@@ -547,7 +555,6 @@ const distributeWinningChips = async (winningNumber) => {
       }, 1);
       if(board.classList.contains('red')){
         bettingBoard[9].classList.add('winning-board');
-        bettingBoard[9].isWin = true;
         setTimeout(() => {
           const chipsOnBoard = bettingBoard[9].querySelectorAll('.placed');
             chipsOnBoard.forEach(chip => {
@@ -573,7 +580,6 @@ const distributeWinningChips = async (winningNumber) => {
         }, 1);
       } else if(board.classList.contains('black')) {
         bettingBoard[8].classList.add('winning-board');
-        bettingBoard[8].isWin = true;
         const chipsOnBoard = bettingBoard[8].querySelectorAll('.placed');
         setTimeout(() => {
           chipsOnBoard.forEach(chip => {
@@ -598,7 +604,6 @@ const distributeWinningChips = async (winningNumber) => {
       }
       if(winningNumber % 2 == 0 ) {
         bettingBoard[0].classList.add('winning-board');
-        bettingBoard[0].isWin = true;
         setTimeout(() => {
           const chipsOnBoard = bettingBoard[0].querySelectorAll('.placed');
           chipsOnBoard.forEach(chip => {
@@ -621,7 +626,6 @@ const distributeWinningChips = async (winningNumber) => {
         }, 1)
       } else if (winningNumber % 2 !== 0) {
         bettingBoard[1].classList.add('winning-board');
-        bettingBoard[1].isWin = true;
         setTimeout(() => {
           const chipsOnBoard = bettingBoard[1].querySelectorAll('.placed');
           chipsOnBoard.forEach(chip => {
@@ -651,14 +655,15 @@ const clearChips = () => {
   if(bets.length > 0){
   const bettingBoard = document.querySelectorAll('.betting-board');
   bettingBoard.forEach(board => {
-    if (!board.isWin) {
+    console.log(`This board is a: ` + (board.classList.contains('winning-board') ? 'Winner' : 'Loser') + board.id);
+    if (!board.classList.contains('winning-board')) {
       const placedChips = board.querySelectorAll('.placed');
       placedChips.forEach(chip => {
         chip.style.transition = 'top 3s ease'; // Change transition to top property
         chip.style.top = '-1000px'; // Remove !important
         console.log('loser');
         setTimeout(() => {
-          console.log("Removing chip with value of: " + chip.value);
+          console.log("Removing chip with value of: " + chip.dataset.value);
           chip.remove();
         }, 3500);
         bets.length = 0;
@@ -671,7 +676,7 @@ const clearChips = () => {
         chip.style.top = '1000px'; // Remove !important
         console.log('winner');
         setTimeout(() => {
-          console.log("Removing chip with value of: " + chip.value);
+          console.log("Removing chip with value of: " + chip.dataset.value);
           chip.remove();
           bets.length = 0;
           updateBetDisplay(0);
@@ -680,14 +685,39 @@ const clearChips = () => {
       })
     }
     board.classList.remove('winning-board');
-    board.isWin = false;
   });
 } else {
   console.log('No chips to remove');
-  alert('No chips to remove');
 }
 };
-document.getElementById('clear-board-button').addEventListener('click', clearChips);
+const handleClearBoardClick = () => {
+  const bettingBoard = document.querySelectorAll('.betting-board');
+  bettingBoard.forEach(board => {
+    const placedChips = board.querySelectorAll('.placed');
+    placedChips.forEach(chip => {
+      console.log(` removing chip with value: ` + chip.dataset.value);
+        chip.remove();  
+    })
+  })
+  bets.length = 0;
+  updateBetDisplay(0);
+  if(lastRoundsBets.length > 0)
+  replayButton.classList.remove('bets-on');
+}
+const clearBoardButton = document.getElementById('clear-board-button');
+const clearBoardInstructions = document.getElementById('clear-board-instructions');
+clearBoardButton.addEventListener('click', handleClearBoardClick);
+clearBoardButton.addEventListener('mouseenter', function () {
+  clearBoardInstructions.classList.add('show');
+  setTimeout(() => {
+    clearBoardInstructions.classList.remove('show');
+  },1000);
+});
+clearBoardButton.addEventListener('mouseleave', function () {
+  clearBoardInstructions.classList.remove('show');
+  
+});
+
 let isDragging = null;
 const placeChipOnBoard = (chip, board) => {
   // chip.classList.remove('dragging');
@@ -747,80 +777,79 @@ class Board {
   }
 
   dragOver(e) {
+      e.preventDefault();
+    }
+
+    dragEnter(e) {
+      e.preventDefault();
+    }
+
+    dragLeave() {
+    }
+    dragDrop(e) {
     e.preventDefault();
-  }
+    
+    if (this.bets.length >= 10) {
+      const chip = document.querySelector('.dragging');
+      chip.remove();
+      setTimeout(() => {
+        alert("Ten bets max.");
+      }, 100);
+      return;
+    }
+    const chip = document.querySelector('.dragging');
+    if (!chip) return;
+    // Process chip drop on a valid board
+    const chipValue = parseFloat(chip.getAttribute('data-value'));
+    chip.classList.remove('dragging');
+    const board = e.currentTarget;
+    const boardValue = parseInt(board.getAttribute('data-value'));
+    let betType = boardValue < 7 ? 0 : boardValue < 9 ? 1 : 2;
+    let valueInWei = web3.utils.toWei(chipValue.toString(), 'ether');
+    let stringWei = valueInWei.toString();
+    
+    const newBetObj = {
+      amount: stringWei,
+      betType,
+      guess: boardValue <= 6 ? boardValue : boardValue === 7 ? 1 : boardValue === 8 ? 2 : boardValue === 9 ? 1 : 2
+    };
+    this.bets.push(newBetObj);
+    const chipNode = chip.cloneNode(true);
+    const chipNodeValue = chipNode.getAttribute('data-value');
+    chipNode.style.position = 'absolute';
+    chipNode.addEventListener('click', () =>{ 
+      removeChip(chipNode, chipNodeValue, boardValue);
+    })
+    // Calculate position relative to the board
+    const boardRect = board.getBoundingClientRect();
+    const offsetX = e.clientX - boardRect.left - 30;
+    const offsetY = e.clientY - boardRect.top - 50;
+    
+    chipNode.style.left = `${offsetX}px`; // Adjust left position relative to board
+    chipNode.style.top = `${offsetY}px`; // Adjust top position relative to board
+    
+    board.appendChild(chipNode);
+    let totalBetAmount = this.calculateTotalBetAmount();
+    this.updateBetDisplay(totalBetAmount);
+    chip.remove();
+    console.log(`${chipValue} matic placed on ${
+      boardValue <= 6
+        ? boardValue
+        : boardValue === 7
+        ? 'odd'
+        : boardValue === 8
+        ? 'even'
+        : boardValue === 9
+        ? 'red'
+        : 'black'
+      } with bet type ${betType == 0 ? 'number' : betType == 1 ? 'parity' : 'color'}`);
+    console.log(`Number of bets: ${this.bets.length}`);
 
-  dragEnter(e) {
-    if (this.isDragging) {
-      this.classList.add('hovered');
+    if (bets.length > 0) {
+      playButton.classList.add("active");
+      replayButton.classList.add('bets-on');
     }
   }
-
-  dragLeave() {
-    if (this.isDragging) {
-      this.classList.remove('hovered');
-    }
-  }
-dragDrop(e) {
-  e.preventDefault();
-  
-  if (this.bets.length >= 10) {
-    alert("Maximum ten bets allowed.");
-    return;
-  }
-  
-  const chip = document.querySelector('.dragging');
-  if (!chip) return;
-  // Process chip drop on a valid board
-  const chipValue = parseFloat(chip.getAttribute('data-value'));
-  chip.classList.remove('dragging');
-  const board = e.currentTarget;
-  const boardValue = parseInt(board.getAttribute('data-value'));
-  let betType = boardValue < 7 ? 0 : boardValue < 9 ? 1 : 2;
-  let valueInWei = web3.utils.toWei(chipValue.toString(), 'ether');
-  let stringWei = valueInWei.toString();
-  
-  const newBetObj = {
-    amount: stringWei,
-    betType,
-    guess: boardValue <= 6 ? boardValue : boardValue === 7 ? 1 : boardValue === 8 ? 2 : boardValue === 9 ? 1 : 2
-  };
-  this.bets.push(newBetObj);
-  const chipNode = chip.cloneNode(true);
-  const chipNodeValue = chipNode.getAttribute('data-value');
-  chipNode.style.position = 'absolute';
-  chipNode.addEventListener('click', () =>{ 
-    removeChip(chipNode, chipNodeValue, boardValue);
-  })
-  // Calculate position relative to the board
-  const boardRect = board.getBoundingClientRect();
-  const offsetX = e.clientX - boardRect.left - 30;
-  const offsetY = e.clientY - boardRect.top - 50;
-  
-  chipNode.style.left = `${offsetX}px`; // Adjust left position relative to board
-  chipNode.style.top = `${offsetY}px`; // Adjust top position relative to board
-  
-  board.appendChild(chipNode);
-  let totalBetAmount = this.calculateTotalBetAmount();
-  this.updateBetDisplay(totalBetAmount);
-  chip.remove();
-  console.log(`${stringWei} matic placed on ${
-    boardValue <= 6
-      ? boardValue
-      : boardValue === 7
-      ? 'odd'
-      : boardValue === 8
-      ? 'even'
-      : boardValue === 9
-      ? 'red'
-      : 'black'
-    } with bet type ${betType == 0 ? 'number' : betType == 1 ? 'parity' : 'color'}`);
-  console.log(`Number of bets: ${this.bets.length}`);
-
-  if (bets.length > 0) {
-    playButton.classList.add("active");
-  }
-}
   async updateBetDisplay(totalBetAmount) {
     try {
       let currentBalance = await fetchBalance();
@@ -874,7 +903,13 @@ class Chip {
     const chip = document.createElement('div');
     chip.className = 'chip';
     chip.setAttribute('data-value', this.value);
-    chip.classList.add(`${this.value == 0.1 ? 'chip-0_1' : this.value == 0.25 ? 'chip-0_25' : this.value == 0.5 ? 'chip-0_5' : this.value == 1 ? 'chip-1' : '' }`);
+    const classMap = {
+      0.1: 'chip-0_1',
+      0.25: 'chip-0_25',
+      0.5: 'chip-0_5',
+      1: 'chip-1',
+    }
+    chip.classList.add(classMap[this.value] || '');
     chip.innerHTML = `
       <div class="center-circle ${this.getCssClass()}"></div>
       <div class="center-circle value">${this.value}</div>
@@ -891,18 +926,14 @@ class Chip {
     return chip;
   }
   getCssClass() {
-    switch(this.value) {
-      case 0.1:
-        return 'tenth';
-      case 0.25:
-        return 'twentyFifth';
-      case 0.5:
-        return 'fiftieth';
-      case 1:
-        return 'one';
-      default:
-        return '';
+
+    const axisClassMap = {
+      0.1: 'tenth',
+      0.25: 'twentyFifth',
+      0.5: 'fiftieth',
+      1: 'one',
     }
+    return axisClassMap[this.value] || '';
   }
   handleClick(event) {
     const containerToAppend = this.getChipContainer();
@@ -935,13 +966,25 @@ class Chip {
       const boards = document.querySelectorAll('.betting-board');
       boards.forEach(board => {
         const boardRect = board.getBoundingClientRect();
-        if (!(chipRect.right <= boardRect.left ||
-              chipRect.left >= boardRect.right ||
-              chipRect.bottom <= boardRect.top ||
-              chipRect.top >= boardRect.bottom)) {
+        if (!(chipRect.right - 50 <= boardRect.left ||
+              chipRect.left + 50 >= boardRect.right ||
+              chipRect.bottom - 50 <= boardRect.top ||
+              chipRect.top + 50 >= boardRect.bottom)) {
           droppedOutside = false;
         }
       });
+      // Check if chip is released inside the black-bet-container
+      const blackBetContainer = document.getElementById('black-bet-container');
+      let blackBetRect = 0;
+      if(blackBetContainer){
+      blackBetRect = blackBetContainer.getBoundingClientRect();
+      }
+      if (!(chipRect.right - 50 <= blackBetRect.left ||
+            chipRect.left + 50 >= blackBetRect.right ||
+            chipRect.bottom - 50 <= blackBetRect.top ||
+            chipRect.top + 50 >= blackBetRect.bottom)) {
+        droppedOutside = false;
+      }
       if (droppedOutside) {
         document.removeEventListener('mousemove', moveChip);
         document.removeEventListener('mouseup', releaseChip);
@@ -974,43 +1017,394 @@ class Chip {
   
   render() {
     const chipContainer = this.getChipContainer();
+    if(chipContainer){
     chipContainer.appendChild(this.element);
+    }
+    else
+    console.log("Error getting chip container class. Value of chipContainer: ", + chipContainer);
   }
 
   getChipContainer() {
-    switch (this.value) {
-      case 0.1:
-        return document.getElementById('chip0_1');
-      case 0.25:
-        return document.getElementById('chip0_25');
-      case 0.5:
-        return document.getElementById('chip0_5');
-      case 1:
-        return document.getElementById('chip1_0');
-      default:
-        return document.getElementById('chips');
+    const chipContainerMap = {
+      0.1: 'chip0_1',
+      0.25: 'chip0_25',
+      0.5: 'chip0_5',
+      1: 'chip1_0',
     }
+
+  return document.getElementById(chipContainerMap[this.value] || 'chips');
   }
 }
+const replayButton = document.getElementById('replay-bet-button');
+const handleReplayBetButton = () => {
+  if(lastRoundsBets.length == 0 || bets.length > 0)
+    return;
+  const bettingBoard = document.querySelectorAll('.betting-board');
+  playButton.classList.add('active');
+  lastRoundsBets.forEach(bet => {
+    const boardWidth = bettingBoard[0].clientWidth;
+    const boardHeight = bettingBoard[0].clientHeight;
+    const amount = bet["amount"];
+    const betType = bet["betType"];
+    const guess = bet["guess"];
+    const newBetObj = {
+      amount,
+      betType,
+      guess
+    }
+    bets.push(newBetObj);
+    const value = web3.utils.fromWei(bet["amount"]);
+    const replacementChip = new Chip(value);
+    const replacementClone = replacementChip.element.cloneNode(true);
+    const topPos = Math.random() * (boardHeight - (replacementClone.offsetHeight + 150));
+    const leftPos = Math.random() * (boardWidth - (replacementClone.offsetWidth + 150));
+    const bottomPos = Math.random() * (boardHeight - (replacementClone.offsetHeight - 150));
+    const rightPos = Math.random() * (boardWidth - (replacementClone.offsetWidth - 150));
+    replacementClone.classList.add('placed');
+    replacementClone.style.position = 'absolute';
+    replacementClone.style.bottom = `${bottomPos}px`;
+    replacementClone.style.right = `${rightPos}px`;
+    replacementClone.style.top = `${topPos}px`;
+    replacementClone.style.left = `${leftPos}px`;
+    replacementClone.addEventListener('click', () =>{
+      removeChip(replacementClone,value, boardIndex);
+    })
+    const boardIndex = guess == 1 && betType == 1 ? 1 : guess == 2 && betType == 1 ? 0 : guess == 1 && betType == 2 ? 9 : guess == 2 && betType == 2 ? 8 : guess == 1 ? 2 : guess == 2 ? 3 : guess == 3 ? 4 : guess == 4 ? 5 : guess == 5 ? 6 : guess == 6 ? 7 : ''; 
+    bettingBoard[boardIndex].appendChild(replacementClone);
+  })
+  updateBetDisplay(calculateTotalBetAmount());
+  console.log(bets);
+}
+replayButton.addEventListener('click', handleReplayBetButton);
+const replayBetInstructions = document.getElementById('replay-bet-instructions');
+replayButton.addEventListener('mouseenter', function () {
+    replayBetInstructions.classList.add('show');
+    setTimeout(() => {
+      replayBetInstructions.classList.remove('show');
+    },1000);
+})
+replayButton.addEventListener('mouseleave', function () {
+  replayBetInstructions.classList.remove('show');
+})
+
 const removeChip = (chip, value, boardValue) => {
   // Remove the chip from the DOM
   chip.remove();
-  decreaseAnimation();
   // Convert value to Wei
-  const valueInWei = web3.utils.toWei(value.toString(), 'ether');
+  const valueInWei = web3.utils.toWei(value, 'ether');
   const guess = parseInt(boardValue <= 6 ? boardValue : boardValue == 7 ? 1 : boardValue == 8 ? 2 : boardValue == 9 ? 1 : 2);
   // Remove the bet from the bets array
-  const index = bets.findIndex(bet => bet.amount == valueInWei && bet.guess == guess);
+  const index = bets.findIndex(bet => bet.amount == valueInWei || bet.guess == guess);
   if (index !== -1) {
     bets.splice(index, 1);
-    console.log(`${value} removed from ${boardValue}`);
+    console.log(`${valueInWei} removed from ${boardValue}. Original value: ${value}`);
     console.log(`Number of remaining bets: ${bets.length}`);
     bets.forEach(bet => console.log(bet)); // Log remaining bets for debugging
   } else {
-    console.log(`No matching bet found for removal: ${valueInWei}, ${boardValue}`);
+    console.log(`No matching bet found for removal: ${valueInWei}, ${boardValue}. Original value: ${value}`);
   }
   updateBetDisplay(calculateTotalBetAmount())
 };
+const evenBetButton = document.getElementById('even-bet-button');
+const handleEvenBetClick = () => {
+  const chip = document.querySelector('.dragging');
+  chip.remove();
+  console.log(chip);
+
+  if (!chip) return;
+  if(bets.length > 6){
+    console.log('Max bet is ten');
+    chip.remove();
+    return;
+  }
+  const numberedBoard = document.querySelectorAll('.numbered-board');
+  console.log('blackBetClicked')
+  const boardWidth = numberedBoard[0].clientWidth;
+  const boardHeight = numberedBoard[0].clientHeight;
+  chip.remove();
+  const chipValue = parseFloat(chip.getAttribute('data-value'));
+  chip.classList.remove('dragging');
+  let valueInWei = web3.utils.toWei(chipValue.toString(), 'ether');
+  let amount = valueInWei.toString();
+  let betType = 0;
+  numberedBoard.forEach((board) => {
+      if(parseInt(board.getAttribute('data-value')) % 2 == 0){
+        const guess = parseInt(board.getAttribute('data-value'));
+        const newBetObj = {
+          amount,
+          betType,
+          guess
+        };
+        bets.push(newBetObj);
+        const replacementChip = new Chip(chipValue);
+        const replacementClone = replacementChip.element.cloneNode(true);
+        const topPos = Math.random() * (boardHeight - (replacementClone.offsetHeight + 150));
+        const leftPos = Math.random() * (boardWidth - (replacementClone.offsetWidth + 150));
+        const bottomPos = Math.random() * (boardHeight - (replacementClone.offsetHeight - 150));
+        const rightPos = Math.random() * (boardWidth - (replacementClone.offsetWidth - 150));
+        replacementClone.classList.add('placed');
+        replacementClone.style.position = 'absolute';
+        replacementClone.style.bottom = `${bottomPos}px`;
+        replacementClone.style.right = `${rightPos}px`;
+        replacementClone.style.top = `${topPos}px`;
+        replacementClone.style.left = `${leftPos}px`;
+        replacementClone.addEventListener('click', () =>{
+          removeChip(replacementClone,amount, guess);
+        })
+        board.appendChild(replacementClone)
+      } 
+  })
+  updateBetDisplay(calculateTotalBetAmount());
+  playButton.classList.add('active');
+ }
+ evenBetButton.addEventListener('click', handleEvenBetClick);
+ evenBetButton.addEventListener('mouseenter', function () {
+  let dragging = document.querySelector('.dragging');
+  if(!dragging)
+  document.getElementById('even-bet-instructions').classList.add('show');
+  else if (dragging) {
+    console.log('Dragging');
+    dragging.style.transition = 'scale .15s';
+    dragging.style.scale = '0.6';
+    this.style.boxShadow = '1px 1px 1px 5px rgba(255,255,255,.1)';
+
+  } else 
+    console.log('Trouble with mouseenter');
+})
+evenBetButton.addEventListener('mouseleave', function () {
+  let dragging = document.querySelector('.dragging');
+  document.getElementById('even-bet-instructions').classList.remove('show');
+  this.style.boxShadow = '';
+  if(dragging)
+  dragging.style.scale = '';
+})
+
+
+const oddBetButton = document.getElementById('odd-bet-button');
+const handleOddBetClick = () => {
+  const chip = document.querySelector('.dragging');
+  chip.remove();
+  console.log(chip);
+
+  if (!chip) return;
+  if(bets.length > 6){
+    console.log('Max bet is ten');
+    chip.remove();
+    return;
+  }
+  const numberedBoard = document.querySelectorAll('.numbered-board');
+  console.log('blackBetClicked')
+  const boardWidth = numberedBoard[0].clientWidth;
+  const boardHeight = numberedBoard[0].clientHeight;
+  chip.remove();
+  const chipValue = parseFloat(chip.getAttribute('data-value'));
+  chip.classList.remove('dragging');
+  let valueInWei = web3.utils.toWei(chipValue.toString(), 'ether');
+  let amount = valueInWei.toString();
+  let betType = 0;
+  numberedBoard.forEach((board) => {
+      if(parseInt(board.getAttribute('data-value')) % 2 != 0){
+        const guess = parseInt(board.getAttribute('data-value'));
+        const newBetObj = {
+          amount,
+          betType,
+          guess
+        };
+        bets.push(newBetObj);
+        const replacementChip = new Chip(chipValue);
+        const replacementClone = replacementChip.element.cloneNode(true);
+        const topPos = Math.random() * (boardHeight - (replacementClone.offsetHeight + 150));
+        const leftPos = Math.random() * (boardWidth - (replacementClone.offsetWidth + 150));
+        const bottomPos = Math.random() * (boardHeight - (replacementClone.offsetHeight - 150));
+        const rightPos = Math.random() * (boardWidth - (replacementClone.offsetWidth - 150));
+        replacementClone.classList.add('placed');
+        replacementClone.style.position = 'absolute';
+        replacementClone.style.bottom = `${bottomPos}px`;
+        replacementClone.style.right = `${rightPos}px`;
+        replacementClone.style.top = `${topPos}px`;
+        replacementClone.style.left = `${leftPos}px`;
+        replacementClone.addEventListener('click', () =>{
+          removeChip(replacementClone,amount, guess);
+        })
+        board.appendChild(replacementClone)
+      } 
+  })
+  updateBetDisplay(calculateTotalBetAmount());
+  playButton.classList.add('active');
+ }
+ oddBetButton.addEventListener('click', handleOddBetClick);
+ oddBetButton.addEventListener('mouseenter', function () {
+  let dragging = document.querySelector('.dragging');
+  if(!dragging)
+  document.getElementById('odd-bet-instructions').classList.add('show');
+  else if (dragging) {
+    console.log('Dragging');
+    dragging.style.transition = 'scale .15s';
+    dragging.style.scale = '0.6';
+    this.style.boxShadow = '1px 1px 1px 5px rgba(255,255,255,.1)';
+
+  } else 
+    console.log('Trouble with mouseenter');
+})
+oddBetButton.addEventListener('mouseleave', function () {
+  let dragging = document.querySelector('.dragging');
+  document.getElementById('odd-bet-instructions').classList.remove('show');
+  this.style.boxShadow = '';
+  if(dragging)
+  dragging.style.scale = '';
+})
+
+
+
+
+const blackBetButton = document.getElementById('black-bet-button');
+ const handleBlackBetClick = () => {
+  const chip = document.querySelector('.dragging');
+  chip.remove();
+  console.log(chip);
+
+  if (!chip) return;
+  if(bets.length > 6){
+    console.log('Max bet is ten');
+    chip.remove();
+    return;
+  }
+  const numberedBoard = document.querySelectorAll('.numbered-board');
+  console.log('blackBetClicked')
+  const boardWidth = numberedBoard[0].clientWidth;
+  const boardHeight = numberedBoard[0].clientHeight;
+  chip.remove();
+  const chipValue = parseFloat(chip.getAttribute('data-value'));
+  chip.classList.remove('dragging');
+  let valueInWei = web3.utils.toWei(chipValue.toString(), 'ether');
+  let amount = valueInWei.toString();
+  let betType = 0;
+  numberedBoard.forEach((board) => {
+      if(board.classList.contains('black')){
+        const guess = parseInt(board.getAttribute('data-value'));
+        const newBetObj = {
+          amount,
+          betType,
+          guess
+        };
+        bets.push(newBetObj);
+        const replacementChip = new Chip(chipValue);
+        const replacementClone = replacementChip.element.cloneNode(true);
+        const topPos = Math.random() * (boardHeight - (replacementClone.offsetHeight + 150));
+        const leftPos = Math.random() * (boardWidth - (replacementClone.offsetWidth + 150));
+        const bottomPos = Math.random() * (boardHeight - (replacementClone.offsetHeight - 150));
+        const rightPos = Math.random() * (boardWidth - (replacementClone.offsetWidth - 150));
+        replacementClone.classList.add('placed');
+        replacementClone.style.position = 'absolute';
+        replacementClone.style.bottom = `${bottomPos}px`;
+        replacementClone.style.right = `${rightPos}px`;
+        replacementClone.style.top = `${topPos}px`;
+        replacementClone.style.left = `${leftPos}px`;
+        replacementClone.addEventListener('click', () =>{
+          removeChip(replacementClone,amount, guess);
+        })
+        board.appendChild(replacementClone)
+      } 
+  })
+  updateBetDisplay(calculateTotalBetAmount());
+  playButton.classList.add('active');
+ }
+blackBetButton.addEventListener('click', handleBlackBetClick)
+blackBetButton.addEventListener('mouseenter', function () {
+  let dragging = document.querySelector('.dragging');
+  if(!dragging)
+  document.getElementById('black-bet-instructions').classList.add('show');
+  else if (dragging) {
+    console.log('Dragging');
+    dragging.style.transition = 'scale .15s';
+    dragging.style.scale = '0.6';
+    this.style.boxShadow = '1px 1px 1px 5px rgba(255,255,255,.1)';
+
+  } else 
+    console.log('Trouble with mouseenter');
+})
+blackBetButton.addEventListener('mouseleave', function () {
+  let dragging = document.querySelector('.dragging');
+  document.getElementById('black-bet-instructions').classList.remove('show');
+  this.style.boxShadow = '';
+  if(dragging)
+  dragging.style.scale = '';
+})
+
+const redBetButton = document.getElementById('red-bet-button');
+ const handleRedBetClick = () => {
+  const chip = document.querySelector('.dragging');
+  chip.remove();
+  console.log(chip);
+
+  if (!chip) return;
+  if(bets.length > 6){
+    console.log('Max bet is ten');
+    chip.remove();
+    return;
+  }
+  const numberedBoard = document.querySelectorAll('.numbered-board');
+  console.log('redBetClicked')
+  const boardWidth = numberedBoard[0].clientWidth;
+  const boardHeight = numberedBoard[0].clientHeight;
+  chip.remove();
+  const chipValue = parseFloat(chip.getAttribute('data-value'));
+  chip.classList.remove('dragging');
+  let valueInWei = web3.utils.toWei(chipValue.toString(), 'ether');
+  let amount = valueInWei.toString();
+  let betType = 0;
+  numberedBoard.forEach((board) => {
+      if(board.classList.contains('red')){
+        const guess = parseInt(board.getAttribute('data-value'));
+        const newBetObj = {
+          amount,
+          betType,
+          guess
+        };
+        bets.push(newBetObj);
+        const replacementChip = new Chip(chipValue);
+        const replacementClone = replacementChip.element.cloneNode(true);
+        const topPos = Math.random() * (boardHeight - (replacementClone.offsetHeight + 150));
+        const leftPos = Math.random() * (boardWidth - (replacementClone.offsetWidth + 150));
+        const bottomPos = Math.random() * (boardHeight - (replacementClone.offsetHeight - 150));
+        const rightPos = Math.random() * (boardWidth - (replacementClone.offsetWidth - 150));
+        replacementClone.classList.add('placed');
+        replacementClone.style.position = 'absolute';
+        replacementClone.style.bottom = `${bottomPos}px`;
+        replacementClone.style.right = `${rightPos}px`;
+        replacementClone.style.top = `${topPos}px`;
+        replacementClone.style.left = `${leftPos}px`;
+        replacementClone.addEventListener('click', () =>{
+          removeChip(replacementClone,amount, guess);
+        })
+        board.appendChild(replacementClone)
+      } 
+  })
+  updateBetDisplay(calculateTotalBetAmount());
+  playButton.classList.add('active');
+ }
+redBetButton.addEventListener('click', handleRedBetClick);
+redBetButton.addEventListener('mouseenter', function () {
+  let dragging = document.querySelector('.dragging');
+  if(!dragging)
+  document.getElementById('red-bet-instructions').classList.add('show');
+  else if (dragging) {
+    console.log('Dragging');
+    dragging.style.transition = 'scale .15s ease';
+    dragging.style.scale = '0.6';
+    this.style.transition = 'boxShadow 2s ease';
+    this.style.boxShadow = '1px 1px 1px 5px rgba(255,255,255,.1)';
+
+  } else 
+    console.log('Trouble with mouseenter');
+})
+redBetButton.addEventListener('mouseleave', function () {
+  let dragging = document.querySelector('.dragging');
+  document.getElementById('red-bet-instructions').classList.remove('show');
+  this.style.boxShadow = '';
+  if(dragging)
+  dragging.style.scale = '';
+})
 
 
 // ANIMATIONS
@@ -1180,20 +1574,15 @@ const rollAnimation = (winningNumber) =>  {
   setTimeout(() => {
     numberedBoards.forEach(board => {
       if (board.getAttribute('data-value') === winningNumber) {
-        board.isWin = true;
         if(board.classList.contains('red')){
           bettingBoard[9].classList.add('winning-board');
-          bettingBoard[9].isWin = true;
         } else if(board.classList.contains('black')) {
           bettingBoard[8].classList.add('winning-board');
-          bettingBoard[8].isWin = true;
         }
         if(winningNumber % 2 == 0 ) {
           bettingBoard[0].classList.add('winning-board');
-          bettingBoard[0].isWin = true;
         } else if (winningNumber % 2 !== 0) {
           bettingBoard[1].classList.add('winning-board');
-          bettingBoard[1].isWin = true;
         }
       board.classList.add('winning-board');
     }
@@ -1209,10 +1598,6 @@ const unRollAnimation = (target) =>  {
   setTimeout(() => {
     numberedBoards.forEach(board => {
       board.classList.remove('active');
-          })
-          bettingBoard.forEach(board => {
-            board.classList.remove('active');
-            board.style.boxShadow = '';
           })
     carousel.style.transform = `translateY(0)`; 
     console.log("Unroll complete.");
@@ -1238,9 +1623,6 @@ const decreaseAnimation = () => {
       balance.classList.remove('increase');
     }, 250)
 }
-
-
-
 
 
 
@@ -1421,7 +1803,7 @@ function resetScene() {
 document.addEventListener('DOMContentLoaded', () => {
   setTimeout(() => {
       document.getElementById('overlay').classList.add('loaded');
-  }, 2000)
+  }, 2000)// 2. Retrieve the bets array from localStorage
 })
 
 let intervalId = setInterval(() => {

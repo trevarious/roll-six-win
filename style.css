@@ -1,3 +1,30 @@
+
+body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 0;
+  padding: 0;
+  height: 100vh;
+  background-color: #102b10;
+  font-family: Arial, sans-serif;
+  color: #fff;
+  overflow-x: hidden;
+  user-select: none;
+}
+nav {
+  display: flex;
+  justify-content:start;
+  align-items: center;
+  width: 100vw;
+  user-select: none;
+}
+canvas {
+  position: absolute;
+  width: 100% ;
+  height: auto ;
+  pointer-events: none;
+}
 #overlay {
   content: "welcome";
   position: fixed;
@@ -5,16 +32,15 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 33, 6, 0.95); /* semi-transparent black overlay */
-  z-index: 9999; /* ensure it's above other content */
+  background-color: rgba(0, 33, 6, 0.95); 
+  z-index: 9999; 
   opacity: 1;
   transition: opacity 1s ease;
   user-select: none;
 }
 #overlay.loaded {
   opacity: 0;
-  pointer-events: none;
-  
+  pointer-events: none; 
 }
 #overlay::before {
   content: 'WELCOME';
@@ -29,194 +55,567 @@
   text-shadow:  5px  5px 10px rgb(63, 100, 69, .3);
   opacity: 1;
 }
+#lossParticles {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  transition: opacity 1s ease;
+  z-index: 1000;
+}
+#breakEven {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  transition: opacity 1s ease;
+  z-index: 1000;
+}
+#loseMessage {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  transition: font-size 3s, opacity 3s;
+  opacity: 0;
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: red;
+  z-index: 100000000;
+}
+#loseMessage.show {
+  opacity: 1;
+  font-size: 3rem;
+}
+#winMessage {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  transition: font-size 3s, opacity 3s;
+  opacity: 0;
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: rgb(26, 255, 0);
+  z-index: 1000000000;
+}
+#winMessage.show {
+  opacity: 1;
+  font-size: 3rem;
+}
+#breakEvenMessage {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  transition: font-size 3s, opacity 3s;
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: rgb(255, 255, 255);
+  opacity: 0;
+  z-index: 10000000;
+}
+#breakEvenMessage.show {
+  opacity: 1;
+  font-size: 3rem;
+}
+#account {
+  width: 150px;
+  margin-left: 15px;
+}
+#wallet-status-container {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  margin-left: 15px;
+  width: 119px;
+  max-width: 600px;
+  height: 25px;
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 10px;
+}
+#wallet-status-container:hover {
+  width: auto;
+}
+#log-status-indicator {
+  margin-right: 5px;
+  width: 20px;
+  height: 20px;
+  background: linear-gradient(145deg, #ff5f5f, #d9534f);
+  border-radius: 50%;
+  font-size: 20px;
+  color: white;
+}
+#log-status-indicator::after {
+  transition: box-shadow 0.45s ease;
+  border-radius: 50%;
+  box-shadow: inset 2px 2px 4px rgba(0, 0, 0, 0.2), inset -2px -2px 4px rgba(255, 255, 255, 0.2);
+}
+#wallet-address {
+  overflow: hidden;
+  white-space: nowrap;
+  font-size: 12px;
+  text-align: left;
+  letter-spacing: 2px;
+  color: #ffffffb7;
+  cursor: default;
+  user-select: all !important;
+}
+#roll-indicator {
+  position: relative; 
+  margin: 0;
+  width: 100%;
+  height: 24px; 
+  background: linear-gradient(to right, rgba(255, 255, 255, 0.356), rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.356));
+  border-bottom: none;
+  border-radius:20px 20px 0 0;
+  box-shadow: none;
+  transition: background-color 0.25s ease;
+}
+#roll-indicator.logged-in {
+  background: none !important;
+  transition: color 1s ease;
+  font-size: 1.5rem;
+  color: gold;
+  animation: logged-in 1s infinite;
+}
+#roll-indicator.active {
+  background-color: rgb(255, 255, 255);
+  animation: blink 0.5s ease infinite;
+}
+#roll-indicator.rolling {
+  animation: rolling 1s infinite;
+}
+#account-button,
+#deposit-button,
+#withdraw-button,
+#place-bet-button {
+  display: none;
+}
+#deposit-button {
+  margin: 0;
+}
+#connect-wallet-button {
+  margin-right: 550px;
+}
+#connect-wallet-button:hover {
+  animation: pulse-two .93s;
+}
+#dice-machine-container {
+  width: 100%;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  pointer-events: none;
+}
+#winningNumber {
+  margin-top: 3%;
+  margin-bottom: 5px;
+  width: 250px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(to right, #81f5815b, rgba(34, 204, 0, 0.5), rgba(124, 247, 140, 0.356));
+  border: 1px solid rgba(16, 101, 48, 0.359);
+  border-radius: 20px;
+  font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+}
+#stats-container {
+  background: rgba(0, 255, 208, 0.533);
+  border-radius: 0 0 0 50px;
+  position: fixed;
+  top: 0;
+  right: 0;
+  padding: 6px;
+  display: flex;
+  align-items: start;
+  justify-content: start;
+  width: 40%;
+  height: 30px;
+  user-select: none;
+}
+#winsDisplay {
+  margin: 10px 20px; 
+  padding: 10px;
+  max-width: 100%; 
+  height: 60px; 
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  background-color: #2d53374d;
+  border: none;
+  border-radius: 10%;
+  box-shadow: inset 2px 2px 5px rgba(0, 0, 0, 0.327), 2px 2px 1px 1px rgba(0, 0, 0, 0.37);
+  overflow: hidden; 
+  user-select: none;
+}
+.board-function-button {
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  margin-top: 30px;
+  margin-left: 15px;
+  background-color: rgb(216, 216, 216);
+  box-shadow: inset 1px 1px 5px 3px rgba(0, 0, 0, 0.413);
+  border: 1px solid rgba(0, 0, 0, 0.441);
+  cursor: pointer;
+
+}
+#clear-board-button {
+  background-image: url('/roll-six-win/assets/clear-bet.png');
+  background-size: 70%;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+#replay-bet-button {
+  background-image: url('/roll-six-win/assets/replay-button.png');
+  background-size: 90%;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+#black-bet-button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+#black-bet-button::before {
+  content: "\20BF";
+  color: black;
+  font-size: 1.5rem;
+}
+.bet-instructions {
+  position: absolute;
+  width: 75px;
+  height: 30px;
+}
+#black-bet-instructions{
+  margin: 0;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  position: absolute;
+  font-size: .90rem;
+  height: 20px;
+  width: 150px;
+  transform: translateY(-50px) translateX(70px);
+  transition: opacity .3s;
+  background: radial-gradient(circle at center, rgba(0, 0, 0, 1) 70%, rgba(0, 0, 0, 0.1) 40%);
+
+}
+#black-bet-instructions.show{
+  opacity: 1;
+}
+#red-bet-instructions{
+  margin: 0;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  position: absolute;
+  font-size: .90rem;
+  height: 20px;
+  width: 150px;
+  transform: translateY(-50px) translateX(70px);
+  transition: opacity .3s;
+  background: radial-gradient(circle at center, rgba(0, 0, 0, 1) 70%, rgba(0, 0, 0, 0.1) 40%);
+
+}
+#red-bet-instructions.show{
+  opacity: 1;
+}
+#red-bet-button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+#red-bet-button::before {
+  content: "\20BF";
+  color: red;
+  font-size: 1.5rem;
+}
+#even-bet-instructions{
+  margin: 0;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  position: absolute;
+  font-size: .90rem;
+  height: 20px;
+  width: 150px;
+  transform: translateY(-50px) translateX(70px);
+  transition: opacity .3s;
+  background: radial-gradient(circle at center, rgba(0, 0, 0, 1) 70%, rgba(0, 0, 0, 0.1) 40%);
+
+}
+#even-bet-instructions.show{
+  opacity: 1;
+}
+#even-bet-button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+#even-bet-button::before {
+  content: "EVEN";
+  font-family: cursive;
+  font-weight: 700;
+  color: rgb(0, 0, 0);
+  font-size: 1.2rem;
+}
+#odd-bet-instructions{
+  margin: 0;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  position: absolute;
+  font-size: .90rem;
+  height: 20px;
+  width: 150px;
+  transform: translateY(-50px) translateX(70px);
+  transition: opacity .3s;
+  background: radial-gradient(circle at center, rgba(0, 0, 0, 1) 70%, rgba(0, 0, 0, 0.1) 40%);
+
+}
+#odd-bet-instructions.show{
+  opacity: 1;
+}
+#odd-bet-button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+#odd-bet-button::before {
+  content: "ODD";
+  font-family: cursive;
+  font-weight: 700;
+  color: rgb(0, 0, 0);
+  font-size: 1.2rem;
+}
+#clear-board-instructions{
+  margin: 0;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  position: absolute;
+  font-size: .90rem;
+  height: 20px;
+  width: 150px;
+  transform: translateY(55px) translateX(-10px);
+  transition: opacity .3s;
+  background: radial-gradient(circle at center, rgba(0, 0, 0, 1) 70%, rgba(0, 0, 0, 0.1) 40%);
+  transition: opacity .5s;
+
+}
+#clear-board-instructions.show {
+  opacity: 1;
+}
+#replay-bet-instructions{
+  margin: 0;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  position: absolute;
+  font-size: .90rem;
+  height: 20px;
+  width: 150px;
+  transform: translateY(55px) translateX(-10px);
+  transition: opacity .3s;
+  background: radial-gradient(circle at center, rgba(0, 0, 0, 1) 70%, rgba(0, 0, 0, 0.1) 40%);
+  transition: opacity .5s;
+
+}
+#replay-bet-instructions.show {
+  opacity: 1;
+}
+#red-bet-instructions.show{
+  opacity: 1;
+}
+#place-bet-button {
+  position: absolute;
+  top: 45px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  background-image: url('/roll-six-win/assets/bet-button1.png');
+  background-size: 100%;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-color: rgba(14, 137, 10, 0);
+  transition: transform 0.1s ease; 
+  transform: rotate(135deg);
+  animation: ready 1s ease infinite;
+  opacity: 1;
+  z-index: 9999999999;
+}
+#place-bet-button.clicked {
+  transform: rotate(135deg) translateY(-25px) translateX(25px);
+  opacity: 0;
+}
+#place-bet-button.hidden {
+  display: none;
+  opacity: 1;
+}
+#history-display {
+  width: 300px;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  background-color: #008f1f;
+  border: 1px solid rgb(0, 255, 89);
+  text-decoration: none;
+  color: black;
+  overflow-x: scroll;
+}
+#history-display.hidden {
+  display: none;
+}
+#even-board {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px 10px 50px 10px;
+  font-family: roboto;
+  font-size: 1.75rem;
+  font-weight: 700;
+  text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5);
+  color: rgb(214, 246, 215);
+}
+#even-board::before {
+  content: "EVEN";
+}
+#odd-board {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px 10px 10px 50px;
+  font-family: roboto;
+  font-size: 1.75rem;
+  font-weight: 700;
+  text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5);
+  color: rgb(214, 246, 215);
+}
+#odd-board::before {
+  content: "ODD";
+}
+#black-board {
+  border-radius: 10px 50px 10px 10px;
+}
+#black-board::before {
+  width: 70%;
+  height: 70%;
+  inset: 15%;
+  position: absolute;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(to bottom right, rgba(75, 75, 75, 0.99) 10%, rgba(0, 0, 0, 0.99) 90%);
+  border-radius: 10px 50px 10px 10px;
+  box-shadow: inset 1px 1px 5px rgba(0, 0, 0, 0.1);
+  font-size: 2rem;
+  text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5);
+  content: "\20BF";
+}
+#red-board {
+  border-radius: 50px 10px 10px 10px;
+}
+#red-board::before {
+  position: absolute;
+  width: 70%;
+  height: 70%;
+  inset: 15%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(to bottom right, rgba(255, 75, 75, 0.9) 10%, rgba(255, 0, 0, 0.85) 90%);
+  box-shadow: inset 1px 1px 5px rgba(0, 0, 0, 0.1);
+  border-radius: 50px 10px 10px 10px;
+  font-size: 2rem;
+  text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5);
+  content: "\20BF";
+}
+#winsDisplay {
+  margin: 10px 20px; 
+  padding: 10px;
+  max-width: 100%;
+  height: 60px; 
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  background-color: #2d53374d;
+  border: none;
+  border-radius: 10%;
+  box-shadow: inset 2px 2px 5px rgba(0, 0, 0, 0.327), 2px 2px 1px 1px rgba(0, 0, 0, 0.37);
+  overflow: hidden;
+  user-select: none;
+}
 .money-buttons {
   background: none;
   color: rgb(136, 255, 150);
   border: none;
   cursor: pointer;
 }
-body {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin: 0;
-    padding: 0;
-    height: 100vh;
-    background-color: #102b10;
-    font-family: Arial, sans-serif;
-    color: #fff;
-    overflow-x: hidden;
-  }
-  nav {
-    display: flex;
-    justify-content:start;
-    align-items: center;
-    width: 100vw;
-    user-select: none;
-  }
-  canvas {
-    position: absolute;
-    width: 100% ;
-    height: auto ;
-    pointer-events: none;
-}
 .dice-canvas {
-    position: absolute;
-    top: -350px;
-    right: 126.5px;
-    width: 100% !important;
-    height: auto !important;
-    transform: scale(.3); /* Use transform instead of scale */
-    transition: top 1s ease, right 1s ease, transform .6s ease, opacity .8s ease; /* Add transition for smooth animation */
-    opacity: 0;
-    pointer-events: none;
+  position: absolute;
+  top: -350px;
+  right: 126.5px;
+  width: 100% !important;
+  height: auto !important;
+  transform: scale(.3); 
+  transition: top 1s ease, right 1s ease, transform .6s ease, opacity .8s ease; 
+  opacity: 0;
+  pointer-events: none;
 }
-
 .dice-canvas.active {
-    top: 0 !important;
-    transform: scale(0.5) !important;
-    opacity: 1 !important;
+  top: 0 !important;
+  transform: scale(0.5) !important;
+  opacity: 1 !important;
+  z-index: 10000000;
 }
-
-  .disable-document {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-    user-select: none;
-    pointer-events: none;
-    z-index: 9999;
-  }
-  .disable-document::before {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: radial-gradient(circle at center, rgba(52, 152, 219, 0.1) 50%, rgba(155, 89, 182, 1) 250%);
-    content: '';
-    z-index: 1;
-  }
-
-  
-  .hidden {
-    display: none;
-  }
-  #lossParticles {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    transition: opacity 1s ease;
-    z-index: 1000;
-  }
-  #breakEven {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    transition: opacity 1s ease;
-    z-index: 1000;
-
-  }
-  #loseMessage {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    transition: font-size 3s, opacity 3s;
-    opacity: 0;
-    font-size: 1.5rem;
-    font-weight: bold;
-    color: red;
-    z-index: 1;
-  }
-  #loseMessage.show {
-    opacity: 1;
-    font-size: 3rem;
-  }
-  #winMessage {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    transition: font-size 3s, opacity 3s;
-    opacity: 0;
-    font-size: 1.5rem;
-    font-weight: bold;
-    color: rgb(26, 255, 0);
-    z-index: 1;
-  }
-  
-  #winMessage.show {
-    opacity: 1;
-    font-size: 3rem;
-  }
-  #breakEvenMessage {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    transition: font-size 3s, opacity 3s;
-    font-size: 1.5rem;
-    font-weight: bold;
-    color: rgb(255, 255, 255);
-    opacity: 0;
-    z-index: 1;
-  }
-  
-  #breakEvenMessage.show {
-    opacity: 1;
-    font-size: 3rem;
-  }
-  #account {
-    width: 150px;
-    margin-left: 15px;
-  }
-  #wallet-status-container {
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
-    align-items: center;
-    margin-left: 15px;
-    width: 119px;
-    max-width: 600px;
-    height: 25px;
-    background-color: rgba(0, 0, 0, 0.2);
-    border-radius: 10px;
-  }
-  #wallet-status-container:hover {
-    width: auto;
-  }
-  #log-status-indicator {
-    margin-right: 5px;
-    width: 20px;
-    height: 20px;
-    background: linear-gradient(145deg, #ff5f5f, #d9534f);
-    border-radius: 50%;
-    font-size: 20px;
-    color: white;
-  }
-    /* Adding a smooth shadow effect for a more professional feel */
-    #log-status-indicator::after {
-      transition: box-shadow 0.45s ease;
-      border-radius: 50%;
-      box-shadow: inset 2px 2px 4px rgba(0, 0, 0, 0.2), inset -2px -2px 4px rgba(255, 255, 255, 0.2);
-    }
-    #wallet-address {
-      overflow: hidden;
-      white-space: nowrap;
-      font-size: 12px;
-      text-align: left;
-      letter-spacing: 2px;
-      color: #ffffffb7;
-      cursor: default;
-      user-select: all;
-    }
+.disable-document {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  user-select: none;
+  pointer-events: none;
+  z-index: 9999;
+}
+.disable-document::before {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle at center, rgba(52, 152, 219, 0.1) 50%, rgba(155, 89, 182, 1) 250%);
+  content: '';
+  z-index: 1;
+}
+.hidden {
+  display: none;
+}
 .nav-button {
   padding: 10px 20px;
   background: linear-gradient(135deg, #284f34, #194319);
@@ -236,1120 +635,844 @@ body {
   pointer-events: none;
   scale: .905;
 }
-#account-button,
-#deposit-button,
-#withdraw-button,
-#place-bet-button {
+.winning-number {
+  margin-right: 15px;
+  list-style: none;
+}
+.carousel-container {
+  width: 50px; 
+  height: 50px; 
+  overflow: hidden;
+  background: linear-gradient(to right, rgba(255, 255, 255, 0.356), rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.356));
+  border: 1px solid #cccccc3c; 
+  border-radius: 0 0 50px 50px;
+  color: rgba(0, 0, 0, 0.647);
+}
+.carousel {
+  display: flex;
+  flex-direction: column;
+  transition: transform 2s ease; 
+  transform: translateY(0); 
+}
+.carousel-number {
+  width: 100%;
+  height: 50px;
+  border-bottom: 5px solid rgba(72, 255, 0, 0.665); 
+  font-size: 3rem; 
+  text-align: center;
+  line-height: 50px; 
+}
+.stat-item {
+  margin: 0;
+  flex: 1;
+  flex-wrap: nowrap;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 25px;
+  text-align: center;
+  letter-spacing: 1;
+  color: black;
+  background-color: rgba(255, 255, 255, 0.2);
+}
+.stat-item:first-child{
+  border-radius: 0 0 0 50px;
+}
+.board-text {
+  font-weight: 700;
+  font-size: .9rem;
+  text-align: center;
+  cursor: default;
+}
+.board-value {
+  border-radius: 50px;
+  font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-size: 1rem;
+  font-weight: 400;
+  color: white;
+  margin-left: 5px;
+}
+.board-container {
+  width: auto;
+  height: auto;
+  margin-top: 3%;
+  padding: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  background:
+    linear-gradient(rgba(0, 77, 0, 0.5),rgba(0, 77, 0, 0.5)),
+    green url(/roll-six-win/assets/betting-board.jpg) center/cover no-repeat;
+  border: 5px solid rgba(0, 0, 0, 0.65);
+  box-shadow: inset 5px 5px 5px rgba(5, 43, 12, 0.5);
+  user-select: none;
+}
+.betting-board {
+  position: relative;
+  margin: 8px;
+  padding: 30px;
+  width: 200px;
+  height: 200px;
+  background: rgba(112, 172, 112, 0.2);
+  border: 1px dotted transparent;
+  border-radius: none;
+  transition: box-shadow 0.3s;
+  text-align: center;
+  font-size: 1.5em;
+  cursor: default;
+}
+.betting-board.active {
+  animation: winner .1s infinite;
+}
+
+.chips-container {
+  width: 100%;
+  height: 120px;
+  display: flex;
+  justify-content: center;
+  flex-direction: row;
+
+}
+.chip-stack {
+  width: 120px; 
+  box-sizing: border-box;
+  overflow: hidden;
+}
+.chip {
+  position: absolute;
+  width: 80px;
+  height: 80px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background:
+  linear-gradient(rgba(0, 77, 0, 0.),rgba(0, 77, 0, 0.)),
+  green url(/roll-six-win/assets/chip-texture.jpg) center/cover no-repeat;
+  background-color: #0b4b45;
+  border: 6px solid rgba(255, 255, 255, 1); 
+  border-radius: 50%;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  font-family: Georgia, 'Times New Roman', Times, serif;
+  font-size: 18px; 
+  color: #fff;
+  text-align: center;
+  cursor: pointer; 
+  transition: transform 0.2s ease-in-out;
+  scale: .8;
+}
+.chip:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+}
+.l-axis {
+  position: absolute;
+  left: -7px;
+  width: 6.5px;
+  height: 12px;
+  background-color: rgb(15, 15, 15);
+  border: 1px solid rgba(199, 234, 2, 0.35);
+  border-radius: 0px 1px 1px 0px;
+}
+.lh-axis {
+    position: absolute;
+    left: 6px;
+    top: 2px;
+    width: 6.5px;
+    height: 12px;
+    background-color: rgb(15, 15, 15);
+    border-radius: 0px 1px 1px 0px;
+    transform: rotate(47deg);
+    }
+.r-axis {
+  position: absolute;
+  right: -7px;
+  width: 6.5px;
+  height: 12px;
+  background-color: rgb(15, 15, 15);
+  border: 1px solid rgba(199, 234, 2, 0.35);
+  border-radius: 1px 0px 0px 1px;
+}
+.rh-axis {
+  position: absolute;
+  right: 6px;
+  bottom: 2px;
+  width: 6.5px;
+  height: 12px;
+  background-color: rgb(15, 15, 15);
+  border: 1px solid rgba(199, 234, 2, 0.35);
+  border-radius: 1px 0px 0px 1px;
+  transform: rotate(47deg);
+}
+.t-axis {
+  position: absolute;
+  top: -7px;
+  width: 12px;
+  height: 6.5px;
+  background-color: rgb(15, 15, 15);
+  border: 1px solid rgba(199, 234, 2, 0.35);
+  border-radius: 0px 0px 1px 1px;
+}
+.th-axis {
+  position: absolute;
+  top: 6px;
+  right:2px;
+  width: 12px;
+  height: 6.5px;
+  background-color: rgb(15, 15, 15);
+  border: 1px solid rgba(199, 234, 2, 0.35);
+  border-radius: 0px 0px 1px 1px;
+  transform: rotate(47deg);
+}
+.b-axis {
+  position: absolute;
+  bottom: -7px;
+  width: 12px;
+  height: 6.5px;
+  background-color: rgb(15, 15, 15);
+  border: 1px solid rgba(199, 234, 2, 0.35);
+  border-radius: 0px 1px 1px 0px;
+}
+.bh-axis {
+  position: absolute;
+  bottom: 6px;
+  left: 2px;
+  width: 12px;
+  height: 6.5px;
+  background-color: rgb(15, 15, 15);
+  border: 1px solid rgba(199, 234, 2, 0.35);
+  border-radius: 0px 1px 1px 0px;
+  transform: rotate(47deg);
+}
+.l-axis.tenth {
+  background-color: rgb(129, 63, 74);
+  border: .5px solid rgb(170, 131, 131);
+}
+.r-axis.tenth {
+  background-color: rgb(129, 63, 74);
+  border: .5px solid rgb(170, 131, 131);
+}
+.t-axis.tenth {
+  background-color: rgb(129, 63, 74);
+  border: .5px solid rgb(170, 131, 131);
+}
+.b-axis.tenth {
+  background-color: rgb(129, 63, 74);
+  border: .5px solid rgb(170, 131, 131);
+}
+.lh-axis.tenth {
+  background-color: rgb(129, 63, 74);
+  border: .5px solid rgb(170, 131, 131);
+}
+.rh-axis.tenth {
+  background-color: rgb(129, 63, 74);
+  border: .5px solid rgb(170, 131, 131);
+}
+.th-axis.tenth {
+  background-color: rgb(129, 63, 74);
+  border: .5px solid rgb(170, 131, 131);
+}
+.bh-axis.tenth {
+  background-color: rgb(129, 63, 74);
+  border: .5px solid rgb(170, 131, 131);
+}
+.l-axis.twentyFifth {
+  background-color: rgb(27, 103, 97);
+  border: .5px solid rgb(131, 170, 167);
+}
+.r-axis.twentyFifth {
+  background-color: rgb(27, 103, 97);
+  border: .5px solid rgb(131, 170, 167);
+}
+.t-axis.twentyFifth {
+  background-color: rgb(27, 103, 97);
+  border: .5px solid rgb(131, 170, 167);
+}
+.b-axis.twentyFifth {
+  background-color: rgb(27, 103, 97);
+  border: .5px solid rgb(131, 170, 167);
+}
+.lh-axis.twentyFifth {
+  background-color: rgb(27, 103, 97);
+  border: .5px solid rgb(131, 170, 167);
+}
+.rh-axis.twentyFifth {
+  background-color: rgb(27, 103, 97);
+  border: .5px solid rgb(131, 170, 167);
+}
+.th-axis.twentyFifth {
+  background-color: rgb(27, 103, 97);
+  border: .5px solid rgb(131, 170, 167);
+}
+.bh-axis.twentyFifth {
+  background-color: rgb(27, 103, 97);
+  border: .5px solid rgb(131, 170, 167);
+}
+.l-axis.fiftieth {
+  background-color: rgb(22, 86, 39);
+  border: .5px solid rgb(132, 170, 131);
+}
+.r-axis.fiftieth {
+  background-color: rgb(22, 86, 39);
+  border: .5px solid rgb(132, 170, 131);
+}
+.t-axis.fiftieth {
+  background-color: rgb(22, 86, 39);
+  border: .5px solid rgb(132, 170, 131);
+}
+.b-axis.fiftieth {
+  background-color: rgb(22, 86, 39);
+  border: .5px solid rgb(132, 170, 131);
+}
+.lh-axis.fiftieth {
+  background-color: rgb(22, 86, 39);
+  border: .5px solid rgb(132, 170, 131);
+}
+.rh-axis.fiftieth {
+  background-color: rgb(22, 86, 39);
+  border: .5px solid rgb(132, 170, 131);
+}
+.th-axis.fiftieth {
+  background-color: rgb(22, 86, 39);
+  border: .5px solid rgb(132, 170, 131);
+}
+.bh-axis.fiftieth {
+  background-color: rgb(22, 86, 39);
+  border: .5px solid rgb(132, 170, 131);
+}
+.l-axis.one {
+  background: rgb(70, 39, 0);
+  border: 0.5px solid rgb(215, 162, 102);
+}
+.r-axis.one {
+  background:rgb(70, 39, 0);
+  border: 0.5px solid rgb(215, 162, 102);
+}
+.t-axis.one {
+  background: rgb(70, 39, 0);
+  border: 0.5px solid rgb(215, 162, 102);
+}
+.b-axis.one {
+  background: rgb(70, 39, 0);
+  border: 0.5px solid rgb(215, 162, 102);
+}
+.lh-axis.one {
+  background:rgb(70, 39, 0);
+  border: 0.5px solid rgb(215, 162, 102);
+}
+.rh-axis.one {
+  background: rgb(70, 39, 0);
+  border: 0.5px solid rgb(215, 162, 102);
+}
+.th-axis.one {
+  background:rgb(70, 39, 0);
+  border: 0.5px solid rgb(215, 162, 102);
+}
+.bh-axis.one {
+  background:rgb(70, 39, 0);
+  border: 0.5px solid rgb(215, 162, 102);
+}
+.chip.disabled {
+  opacity: 0.65;
+  pointer-events: none;
+}
+.hovered {
+  border: 1px dotted rgba(255, 217, 0, 0.5);
+}
+.chip .center-circle {
+  position: relative;
+  width: 65px;
+  height: 65px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background:
+  radial-gradient(circle at center, rgba(255, 255, 255, 0.3),rgb(91, 101, 0)),
+  rgba(255, 255, 255, 1) url(/roll-six-win/assets/polygon.chip.webp) center/cover no-repeat;
+  background-size: 70%; 
+  border: 4px solid rgba(125, 0, 183, 0.356);
+  border-radius: 50%;
+  font-weight: bold;
+  font-size: 24px;
+  color: #0b4b45;
+  z-index: 2;
+}
+.center-circle.one::before {
+  content: '';
+  opacity: 1;
+  font-family: Noto Serif Display;
+  font-weight: 400;
+  user-select: none;
+  color: rgb(0, 0, 0);
+}
+.chip:hover .center-circle.one::before {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-weight: 800;
+  content: '1';
+  font-size: 2rem;
+  border: none;
+  background: 
+  radial-gradient(circle at center, rgba(255, 255, 255, 0.85),rgb(91, 101, 0)),
+  rgba(255, 255, 255, 1) url(/roll-six-win/assets/polygon.chip.webp) center/cover no-repeat;
+  background-size: 70%; 
+}
+.center-circle.tenth::before {
+  content: '';
+  opacity: 1;
+  font-family: Noto Serif Display;
+  font-weight: 400;
+  color: rgb(0, 0, 0);
+}
+.chip:hover .center-circle.tenth::before {
+  display: flex;
+  justify-content: center;
+  font-size: 2rem;
+  align-items: center;
+  content: '.1';
+  font-weight: 800;
+  border: none;
+  background: 
+  radial-gradient(circle at center, rgba(255, 255, 255, 0.85),rgb(91, 101, 0)),
+  rgba(255, 255, 255, 1) url(/roll-six-win/assets/polygon.chip.webp) center/cover no-repeat;
+  background-size: 70%; 
+}
+.center-circle.twentyFifth::before {
+  content: '';
+  opacity: 1;
+  font-family: Noto Serif Display;
+  font-weight: 800;
+  color: rgba(0, 0, 0, 0.95);
+}
+.chip:hover .center-circle.twentyFifth::before {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  content: '.25';
+  border: none;
+  background: 
+  radial-gradient(circle at center, rgba(255, 255, 255, 0.85),rgb(91, 101, 0)),
+  rgba(255, 255, 255, 1) url(/roll-six-win/assets/polygon.chip.webp) center/cover no-repeat;
+  background-size: 70%; 
+  font-size: 2rem;
+}
+
+.center-circle.fiftieth::before {
+  display: none;
+  content: "";
+  opacity: 1;
+  font-family: Noto Serif Display;
+  font-weight: 800;
+  color: rgba(0, 0, 0, 0.95);
+}
+.chip:hover .center-circle.fiftieth::before {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  content: '.5';
+  border: none;
+  background: 
+  radial-gradient(circle at center, rgba(255, 255, 255, 0.85),rgb(91, 101, 0)),
+  rgba(255, 255, 255, 1) url(/roll-six-win/assets/polygon.chip.webp) center/cover no-repeat;
+  background-size: 70%; 
+  font-size: 2rem;
+}
+.center-circle::before {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(to top left,rgba(251, 255, 0, 0.2),rgba(255, 255, 255, 0.1) );
+  border-radius: 50%;
+  inset: -2%;
+  content: ''; 
+}
+.chip .center-circle.value {
+  position: absolute;
   display: none;
 }
-#deposit-button {
-  margin: 0;
+.red::before, .black::before {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 50%;
+  content: attr(data-value);
+  transform: translate(-50%, -50%);
+  transition: background 2s ease, transform 2s ease;
+  font-family: monospace;
+  font-weight: 700;
 }
-#connect-wallet-button {
-  margin-right: 550px;
+.waiting {
+  transition: background 2s ease, transform 2s ease;
 }
-#connect-wallet-button:hover {
-  animation: pulse-two .93s;
+.waiting::before{
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  content: attr(data-value);
+  font-family: monospace;
+  transform: translate(-50%, -50%);
+}
+.red::before {
+  background: linear-gradient(to bottom right, rgba(255, 75, 75, 0.9) 10%, rgba(255, 0, 0, 0.85) 90%);
+  box-shadow: 1px 1px rgba(0, 0, 0, 0.5);
+}
 
+.black::before {
+  background: linear-gradient(to bottom right, rgba(75, 75, 75, 0.99) 10%, rgba(0, 0, 0, 0.99) 90%);
+  box-shadow: 1px 1px rgba(0, 0, 0, 0.5);
+}
+.logged-in {
+  background: linear-gradient(145deg, #b8ff80, #98e664) !important;
+}
+.pulse-class {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  animation: pulse 1s linear;
+  animation-fill-mode: forwards;
+}
+.pulse-two-class {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  animation: pulse-two 1s linear;
+  animation-fill-mode: forwards;
+}
+.fade-in-out {
+    transition: opacity 0.15s ease-in, transform 0.15s ease, font-size 0.15s ease, color .15s ease;
+  }
+.fade-in-out.hidden2 {
+  opacity: .75;
+  font-size: .93rem !important;
+}
+.fade-in-out.increase {
+  color: rgb(255, 255, 0);
+  animation: increase 0.25s linear;
+  animation-fill-mode: forwards;
+}
+.fade-in-out.decrease {
+  color: rgb(255, 255, 0);
+  animation: decrease 0.25s linear;
+  animation-fill-mode: forwards;
+}
+  .win-item {
+    display: flex;
+    align-items: center;
+  }
+.win-text {
+  margin-right: 5px;
+  font-size: .99rem;
+  outline: none;
+}
+.lights {
+  display: flex;
+  justify-content: flex-start; 
+}
+.numbered-board.active {
+  animation: winner .2s infinite;
+}
+.light-container {
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  width: 100%;
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: flex-start;
+}
+.light {
+  margin-bottom: 1px !important;
+  padding: 10px !important; 
+  width: 1px !important;
+  height: 1px !important;
+  display: flex;
+  flex: 1;
+  justify-content: center;
+  align-items: center;
+  background: radial-gradient(circle at center, rgba(38, 53, 40, 0.5) 0%, rgba(38, 53, 40, 0.8) 80%, rgba(38, 53, 40, 1) 100%);
+  border: 1px solid rgb(53, 116, 53);
+  border-radius: 50%;
+  transition: background-color 1s, color 1s; 
+  font-family:Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  text-shadow: none !important;
+  letter-spacing: -1.5px;
+  line-height: 0 !important;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.4); 
+}
+.light.active-light {
+  margin-bottom: 4px !important;
+  background: radial-gradient(circle, rgba(151, 255, 151, 0.9) 20%, rgba(151, 255, 151, 0.5) 80%, rgba(255, 255, 255, 0) 100%);
+  color: rgb(255, 255, 255); 
+  border: 1px solid rgba(0, 0, 0, 0.386);
+}
+.light.scale {
+  margin-top: 3px !important;
+  margin-bottom: 5px !important;
+}
 
+.place-chips {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  transform: translateY(-20px);
+}
+.streaks {
+  margin: 0 5px;
+width: 10px;
+height: 10px;
+border-radius: 50%;
+}
+.parity-streaks {
+  background-color:rgba(94, 255, 94, 0.2);
+}
+.number-streaks {
+  background-color:rgba(94, 255, 94, 0.2);
+} 
+.color-streaks {
+  background-color:rgba(94, 255, 94, 0.2);
+}
+.chip-0_1 {
+  background:
+  radial-gradient(circle at center, rgba(255, 255, 255, 0.2),rgba(255, 0, 0, 0.8)),
+  rgba(255, 255, 255, 1) url(/roll-six-win/assets/chip-texture.webp) center/cover no-repeat;
+}
+.chip-0_25 {
+  background: 
+  radial-gradient(circle at center, rgba(255, 255, 255, 0.2), rgba(0, 17, 255, 0.8)),
+  rgba(153, 204, 255, 1) url(/roll-six-win/assets/chip-texture.webp) center/cover no-repeat;
+}
+.chip-0_5 {
+  background: 
+  radial-gradient(circle at center, rgba(255, 255, 255, 0.2), rgba(0, 247, 255, 0.8)),
+  rgba(153, 204, 255, 1) url(/roll-six-win/assets/chip-texture.webp) center/cover no-repeat;
+}
+.chip-1 {
+  background: 
+  radial-gradient(circle at center, rgba(255, 255, 255, 0.2), rgba(166, 0, 255, 0.8)),
+  rgba(153, 204, 255, 1) url(/roll-six-win/assets/chip-texture.webp) center/cover no-repeat;
+}
+.chip-default {
+  background: linear-gradient(45deg, rgba(11, 75, 69, 1), rgba(255, 255, 255, 1));
+}
+
+.winning-board {
+  box-shadow:  1px 1px 20px gold;
+}
+.board-control-button {
+  cursor: pointer;
+}
+.active {
+  display: block !important;
+}
+.broke {
+  animation: pulse 1.9s infinite linear;
+  animation-fill-mode: forwards;
+}
+.placed {
+  transform: translateX(-50%);
+  animation: drop .33s ease-out forwards;
+  scale: .5;
+}
+.bets-on{
+  pointer-events: none;
+  opacity: .5;
+}
+/* ANIMATIONS */
+@keyframes drop {
+  0% {
+    bottom: -20px;
+    transform: translateY(-40%) scale(0.95);
+    opacity: 1;
   }
-  .winning-number {
-    margin-right: 15px;
-    list-style: none;
+  40% {
+    transform: translateY(-44%) scale(1);
+    opacity: 1;
   }
-  #roll-indicator {
-    position: relative; /* Ensure z-index works */
-    margin: 0;
-    width: 100%; /* Adjust width as needed */
-    height: 24px; /* Adjust height to match carousel-number */
-    background: linear-gradient(to right, rgba(255, 255, 255, 0.356), rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.356));
-    border-bottom: none;
-    border-radius:20px 20px 0 0;
-    box-shadow: none;
-    transition: background-color 0.25s ease;
+  80% {
+    transform: translateY(-48%) scale(0.95);
+    opacity: 1;
   }
-  #roll-indicator.logged-in {
-    background: none !important;
-    transition: color 1s ease;
-    font-size: 1.5rem;
-    color: gold;
-    animation: logged-in 1s infinite;
+  100% {
+    opacity: 1;
+    transform: translateY(-50%) scale(1);
+    bottom: 0;
   }
-  @keyframes logged-in {
-    0% {
-      color:rgba(72, 255, 0, 0.5);
-    }
-    25% {
-      color: rgba(72, 255, 0, 0.75);
-    }
-    50% {
-      color: rgba(72, 255, 0, 1);
-    }
-    75% {
-      color: rgba(72, 255, 0, 0.75);
-    }
-    100% {
-      color: rgba(72, 255, 0, 0.5);
-    }
+}
+@keyframes rotate-0 {
+  0% {
+    transform: translateY(-50%) scale(1) rotate(0deg);
   }
-  #roll-indicator.active {
+  100% {
+    transform: translateY(-50%) scale(1) rotate(0deg);
+  }
+}
+
+@keyframes rotate-45 {
+  0% {
+    transform: translateY(-50%) scale(1) rotate(0deg);
+  }
+  100% {
+    transform: translateY(-50%) scale(1) rotate(15deg);
+  }
+}
+
+@keyframes rotate-90 {
+  0% {
+    transform: translateY(-50%) scale(1) rotate(0deg);
+  }
+  100% {
+    transform: translateY(-50%) scale(1) rotate(30deg);
+  }
+}
+
+@keyframes logged-in {
+  0% {
+    color:rgba(72, 255, 0, 0.5);
+  }
+  25% {
+    color: rgba(72, 255, 0, 0.75);
+  }
+  50% {
+    color: rgba(72, 255, 0, 1);
+  }
+  75% {
+    color: rgba(72, 255, 0, 0.75);
+  }
+  100% {
+    color: rgba(72, 255, 0, 0.5);
+  }
+}
+@keyframes increase {
+  0% {
+    color: rgb(255, 255, 0);
+  }
+  25% {
+    text-shadow: 10px 10px 20px rgba(100, 255, 0, .15);
+    color: rgb(100, 255, 0);
+  }
+  50% {
+    text-shadow: 10px 10px 20px rgba(100, 255, 0, .1);
+    color: rgb(0, 255, 0);
+  }
+  75% {
+    text-shadow: 10px 10px 20px rgba(100, 255, 0, .05);
+    color: rgb(100, 255, 0);
+  }
+  100% {
+    color: rgb(255, 255, 0);
+  }
+}
+@keyframes decrease {
+  0% {
+    color: rgb(255, 255, 0);
+  }
+  25% {
+    text-shadow: 10px 10px 20px rgba(238, 255, 0, 0.15);
+    color: rgb(255, 100, 0);
+  }
+  50% {
+    text-shadow: 10px 10px 20px rgba(229, 255, 0, 0.1);
+    color: rgb(255, 0, 0);
+  }
+  75% {
+    text-shadow: 10px 10px 20px rgba(234, 255, 0, 0.05);
+    color: rgb(255, 100, 0);
+  }
+  100% {
+    color: rgb(255, 255, 0);
+  }
+}
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(254, 93, 82, 0.7);
+  }
+  50% {
+
+    box-shadow: 0 0 0 10px rgba(255, 184, 184, 0);
+  }
+
+  100%{  box-shadow: 0 0 0 0 rgba(0, 0, 0, 0);
+  }
+}
+@keyframes pulse-two {
+  0% {
+
+    box-shadow: 0 0 0 0 rgba(82, 254, 82, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(255, 184, 184, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(0, 0, 0, 0);
+  }
+}
+@keyframes winner {
+  0% {
+    box-shadow:inset 2px 4px 8px rgba(246, 255, 211, .1);
+    border: 1.25px solid white;
+  }
+  25% {
+    box-shadow: inset 2px 8px 16px rgba(252, 255, 155, .1);
+    border: 1.25px solid white;
+  }
+  50% {
+    box-shadow: inset 2px 16px 32px rgba(255, 253, 105, .1);
+    border: 1.25px solid white;
+  }
+  75% {
+    box-shadow: inset 2px 8px 16px rgba(252,255,155, .1);
+    border: 1.25px solid white;
+  }
+  100% {
+    box-shadow: inset 2px 4px 8px rgba(246, 255, 211, .1);
+    border: 1.25px solid white;
+  }
+}
+@keyframes rolling {
+  0% {
+    background: rgba(255, 255, 0, 0.476);
+  }
+  50% {
+    background: rgba(255, 255, 162, 0.599);
+  }
+  100% {
+    background: rgba(255, 255, 0, 0.476);
+  }
+}
+
+@keyframes blink {
+  0% {
     background-color: rgb(255, 255, 255);
-    animation: blink 0.5s ease infinite;
   }
-  #roll-indicator.rolling {
-  animation: rolling 1s infinite;
+  50% {
+    background-color: rgb(26, 255, 0);
   }
-
-
-  .carousel-container {
-    width: 50px; /* Adjust width as needed */
-    height: 50px; /* Adjust height as needed */
-    overflow: hidden;
-    background: linear-gradient(to right, rgba(255, 255, 255, 0.356), rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.356));
-    border: 1px solid #cccccc3c; /* Example border */
-    border-radius: 0 0 50px 50px;
-    color: rgba(0, 0, 0, 0.647);
+  100% {
+    background-color: rgb(255, 255, 255);
   }
-  
-  .carousel {
-    display: flex;
-    flex-direction: column;
-    transition: transform 2s ease; /* Example transition duration */
-    transform: translateY(0); /* Initial transform to position first number */
+}
+@keyframes ready {
+  0%{
+    scale: 1;
   }
-  
-  .carousel-number {
-    width: 100%;
-    height: 50px; /* Adjust height as needed */
-    border-bottom: 5px solid rgba(72, 255, 0, 0.665); /* Example border */
-    font-size: 3rem; /* Adjust font size as needed */
-    text-align: center;
-    line-height: 50px; /* Center vertically */
+  50% {
+    scale: 1.05;
   }
-  #winningNumber {
-    margin-top: 3%;
-    margin-bottom: 5px;
-    position: absolute;
-    right: 50%;
-    width: 250px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    background: linear-gradient(to right, #81f5815b, rgba(34, 204, 0, 0.5), rgba(124, 247, 140, 0.356));
-    border: 1px solid rgba(16, 101, 48, 0.359);
-    border-radius: 20px;
-    font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+  100% {
+    scale: 1;
   }
-
-  #stats-container {
-
-    background: rgba(0, 255, 208, 0.533);
-    border-radius: 0 0 0 30px;
-    position: fixed;
-    top: 0;
-    right: 0;
-    padding: 6px;
-    display: flex;
-    align-items: start;
-    justify-content: start;
-    width: 40%;
-    height: 30px;
-    user-select: none;
-  }
-  .stat-item {
-    margin: 0;
-    flex: 1; /* Ensure items take available space */
-    flex-wrap: nowrap;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 25px;
-    text-align: center;
-    letter-spacing: 1;
-    color: black;
-    background-color: rgba(255, 255, 255, 0.2);
-  }
-  .stat-item:first-child{
-    border-radius: 0 0 0 30px;
-  }
-  .board-text {
-    font-weight: 700;
-    font-size: .9rem;
-    text-align: center;
-    cursor: default;
-  }
-  .board-value {
-    border-radius: 50px;
-    font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    font-size: 1rem;
-    font-weight: 400;
-    color: white;
-    margin-left: 5px;
-  }
-/* Pacifico */
-  .board-container {
-    width: auto;
-    height: auto;
-    margin-top: 3%;
-    padding: 10px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-wrap: wrap;
-    background:
-      linear-gradient(rgba(0, 77, 0, 0.5),rgba(0, 77, 0, 0.5)),
-      green url(/roll-six-win/assets/betting-board.jpg) center/cover no-repeat;
-    border: 5px solid rgba(0, 0, 0, 0.65);
-    box-shadow: inset 5px 5px 5px rgba(5, 43, 12, 0.5);
-    user-select: none;
-  }
-  
-  .betting-board {
-    position: relative;
-    margin: 8px;
-    padding: 30px;
-    width: 200px;
-    height: 200px;
-    background: rgba(112, 172, 112, 0.2);
-    border: 1px dotted transparent;
-    border-radius: none;
-    transition: box-shadow 0.3s;
-    text-align: center;
-    font-size: 1.5em;
-    cursor: default;
-  }
-  .betting-board.active {
-    animation: winner .1s infinite;
-  }
-  
-  @keyframes drop {
-    0% {
-      bottom: -20px;
-      transform: translateY(-40%) scale(0.95);
-      opacity: 1;
-    }
-    40% {
-      transform: translateY(-44%) scale(1);
-      opacity: 1;
-    }
-    80% {
-      transform: translateY(-48%) scale(0.95);
-      opacity: 1;
-    }
-    100% {
-      opacity: 1;
-      transform: translateY(-50%) scale(1);
-      bottom: 0;
-    }
-  }
-  @keyframes rotate-0 {
-    0% {
-      transform: translateY(-50%) scale(1) rotate(0deg);
-    }
-    100% {
-      transform: translateY(-50%) scale(1) rotate(0deg);
-    }
-  }
-  
-  @keyframes rotate-45 {
-    0% {
-      transform: translateY(-50%) scale(1) rotate(0deg);
-    }
-    100% {
-      transform: translateY(-50%) scale(1) rotate(15deg);
-    }
-  }
-  
-  @keyframes rotate-90 {
-    0% {
-      transform: translateY(-50%) scale(1) rotate(0deg);
-    }
-    100% {
-      transform: translateY(-50%) scale(1) rotate(30deg);
-    }
-  }
-  
-  .chips-container {
-    width: 50%;
-    height: 120px;
-    display: flex;
-    justify-content: center;
-    flex-direction: row;
-    margin-right: 10%;
-  }
-  
-  .chip-stack {
-    display: flex;
-    align-items: end;
-    justify-content: end;
-    width: 120px; /* Each stack takes up 25% of the container */
-    box-sizing: border-box;
-    overflow: hidden;
-  }
-  
-  
-  .chip {
-    position: absolute;
-    width: 80px;
-    height: 80px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background:
-    linear-gradient(rgba(0, 77, 0, 0.),rgba(0, 77, 0, 0.)),
-    green url(/roll-six-win/assets/chip-texture.jpg) center/cover no-repeat;
-    background-color: #0b4b45; /* Dark teal background */
-    border: 6px solid rgba(255, 255, 255, 1); /* Light border */
-    border-radius: 50%;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    font-family: Georgia, 'Times New Roman', Times, serif;
-    font-size: 18px; /* Larger font size */
-    color: #fff;
-    text-align: center;
-    cursor: pointer; /* Reverting to pointer cursor */
-    transition: transform 0.2s ease-in-out;
-  }
-  .chip:hover {
-    transform: scale(1.05);
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
-  }
-  .l-axis {
-    position: absolute;
-    left: -7px;
-    width: 6.5px;
-    height: 12px;
-    background-color: rgb(15, 15, 15);
-    border: 1px solid rgba(199, 234, 2, 0.35);
-    border-radius: 0px 1px 1px 0px;
-  }
-  .lh-axis {
-      position: absolute;
-      left: 6px;
-      top: 2px;
-      width: 6.5px;
-      height: 12px;
-      background-color: rgb(15, 15, 15);
-      border-radius: 0px 1px 1px 0px;
-      transform: rotate(47deg);
-      }
-  .r-axis {
-    position: absolute;
-    right: -7px;
-    width: 6.5px;
-    height: 12px;
-    background-color: rgb(15, 15, 15);
-    border: 1px solid rgba(199, 234, 2, 0.35);
-    border-radius: 1px 0px 0px 1px;
-  }
-  .rh-axis {
-    position: absolute;
-    right: 6px;
-    bottom: 2px;
-    width: 6.5px;
-    height: 12px;
-    background-color: rgb(15, 15, 15);
-    border: 1px solid rgba(199, 234, 2, 0.35);
-    border-radius: 1px 0px 0px 1px;
-    transform: rotate(47deg);
-  }
-  .t-axis {
-    position: absolute;
-    top: -7px;
-    width: 12px;
-    height: 6.5px;
-    background-color: rgb(15, 15, 15);
-    border: 1px solid rgba(199, 234, 2, 0.35);
-    border-radius: 0px 0px 1px 1px;
-  }
-  .th-axis {
-    position: absolute;
-    top: 6px;
-    right:2px;
-    width: 12px;
-    height: 6.5px;
-    background-color: rgb(15, 15, 15);
-    border: 1px solid rgba(199, 234, 2, 0.35);
-    border-radius: 0px 0px 1px 1px;
-    transform: rotate(47deg);
-  }
-  .b-axis {
-    position: absolute;
-    bottom: -7px;
-    width: 12px;
-    height: 6.5px;
-    background-color: rgb(15, 15, 15);
-    border: 1px solid rgba(199, 234, 2, 0.35);
-    border-radius: 0px 1px 1px 0px;
-  }
-  .bh-axis {
-    position: absolute;
-    bottom: 6px;
-    left: 2px;
-    width: 12px;
-    height: 6.5px;
-    background-color: rgb(15, 15, 15);
-    border: 1px solid rgba(199, 234, 2, 0.35);
-    border-radius: 0px 1px 1px 0px;
-    transform: rotate(47deg);
-  }
-  .l-axis.tenth {
-    background-color: rgb(129, 63, 74);
-    border: .5px solid rgb(170, 131, 131);
-  }
-  .r-axis.tenth {
-    background-color: rgb(129, 63, 74);
-    border: .5px solid rgb(170, 131, 131);
-  }
-  .t-axis.tenth {
-    background-color: rgb(129, 63, 74);
-    border: .5px solid rgb(170, 131, 131);
-  }
-  .b-axis.tenth {
-    background-color: rgb(129, 63, 74);
-    border: .5px solid rgb(170, 131, 131);
-  }
-  .lh-axis.tenth {
-    background-color: rgb(129, 63, 74);
-    border: .5px solid rgb(170, 131, 131);
-  }
-  .rh-axis.tenth {
-    background-color: rgb(129, 63, 74);
-    border: .5px solid rgb(170, 131, 131);
-  }
-  .th-axis.tenth {
-    background-color: rgb(129, 63, 74);
-    border: .5px solid rgb(170, 131, 131);
-  }
-  .bh-axis.tenth {
-    background-color: rgb(129, 63, 74);
-    border: .5px solid rgb(170, 131, 131);
-  }
-  .l-axis.twentyFifth {
-    background-color: rgb(27, 103, 97);
-    border: .5px solid rgb(131, 170, 167);
-  }
-  .r-axis.twentyFifth {
-    background-color: rgb(27, 103, 97);
-    border: .5px solid rgb(131, 170, 167);
-  }
-  .t-axis.twentyFifth {
-    background-color: rgb(27, 103, 97);
-    border: .5px solid rgb(131, 170, 167);
-  }
-  .b-axis.twentyFifth {
-    background-color: rgb(27, 103, 97);
-    border: .5px solid rgb(131, 170, 167);
-  }
-  .lh-axis.twentyFifth {
-    background-color: rgb(27, 103, 97);
-    border: .5px solid rgb(131, 170, 167);
-  }
-  .rh-axis.twentyFifth {
-    background-color: rgb(27, 103, 97);
-    border: .5px solid rgb(131, 170, 167);
-  }
-  .th-axis.twentyFifth {
-    background-color: rgb(27, 103, 97);
-    border: .5px solid rgb(131, 170, 167);
-  }
-  .bh-axis.twentyFifth {
-    background-color: rgb(27, 103, 97);
-    border: .5px solid rgb(131, 170, 167);
-  }
-  .l-axis.fiftieth {
-    background-color: rgb(22, 86, 39);
-    border: .5px solid rgb(132, 170, 131);
-  }
-  .r-axis.fiftieth {
-    background-color: rgb(22, 86, 39);
-    border: .5px solid rgb(132, 170, 131);
-  }
-  .t-axis.fiftieth {
-    background-color: rgb(22, 86, 39);
-    border: .5px solid rgb(132, 170, 131);
-  }
-  .b-axis.fiftieth {
-    background-color: rgb(22, 86, 39);
-    border: .5px solid rgb(132, 170, 131);
-  }
-  .lh-axis.fiftieth {
-    background-color: rgb(22, 86, 39);
-    border: .5px solid rgb(132, 170, 131);
-  }
-  .rh-axis.fiftieth {
-    background-color: rgb(22, 86, 39);
-    border: .5px solid rgb(132, 170, 131);
-  }
-  .th-axis.fiftieth {
-    background-color: rgb(22, 86, 39);
-    border: .5px solid rgb(132, 170, 131);
-  }
-  .bh-axis.fiftieth {
-    background-color: rgb(22, 86, 39);
-    border: .5px solid rgb(132, 170, 131);
-  }
-  .l-axis.one {
-    background: rgb(70, 39, 0);
-    border: 0.5px solid rgb(215, 162, 102);
-  }
-  .r-axis.one {
-    background:rgb(70, 39, 0);
-    border: 0.5px solid rgb(215, 162, 102);
-  }
-  .t-axis.one {
-    background: rgb(70, 39, 0);
-    border: 0.5px solid rgb(215, 162, 102);
-  }
-  .b-axis.one {
-    background: rgb(70, 39, 0);
-    border: 0.5px solid rgb(215, 162, 102);
-  }
-  .lh-axis.one {
-    background:rgb(70, 39, 0);
-    border: 0.5px solid rgb(215, 162, 102);
-  }
-  .rh-axis.one {
-    background: rgb(70, 39, 0);
-    border: 0.5px solid rgb(215, 162, 102);
-  }
-  .th-axis.one {
-    background:rgb(70, 39, 0);
-    border: 0.5px solid rgb(215, 162, 102);
-  }
-  .bh-axis.one {
-    background:rgb(70, 39, 0);
-    border: 0.5px solid rgb(215, 162, 102);
-  }
-  .chip.disabled {
-    opacity: 0.65; /* Example: reduce opacity for disabled chips */
-    pointer-events: none; /* Prevent interactions with disabled chips */
-    /* Add any additional styling for disabled chips */
-  }
-  .hovered {
-    border: 1px dotted rgba(255, 217, 0, 0.5);
-  }
-  .chip .center-circle {
-    position: relative;
-    width: 65px;
-    height: 65px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background:
-    radial-gradient(circle at center, rgba(255, 255, 255, 0.3),rgb(91, 101, 0)),
-    rgba(255, 255, 255, 1) url(/roll-six-win/assets/polygon.chip.webp) center/cover no-repeat;
-    background-size: 70%; 
-    border: 4px solid rgba(125, 0, 183, 0.356); /* Teal border */
-    border-radius: 50%;
-    font-weight: bold;
-    font-size: 24px;
-    color: #0b4b45; /* Dark teal text color */
-    z-index: 2;
-  }
-  .center-circle.one::before {
-    content: '';
-    opacity: 1;
-    font-family: Noto Serif Display;
-    font-weight: 400;
-    user-select: none;
-  }
-  .chip:hover .center-circle.one::before {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-weight: 800;
-    content: '1';
-    font-size: 2rem;
-    border: none;
-    background: 
-    radial-gradient(circle at center, rgba(255, 255, 255, 0.85),rgb(91, 101, 0)),
-    rgba(255, 255, 255, 1) url(/roll-six-win/assets/polygon.chip.webp) center/cover no-repeat;
-    background-size: 70%; 
-  }
-  .center-circle.tenth::before {
-    content: '';
-    opacity: 1;
-    font-family: Noto Serif Display;
-    font-weight: 400;
-    color: rgb(0, 0, 0);
-  }
-  .chip:hover .center-circle.tenth::before {
-    display: flex;
-    justify-content: center;
-    font-size: 2rem;
-    align-items: center;
-    content: '.1';
-    font-weight: 800;
-    border: none;
-    background: 
-    radial-gradient(circle at center, rgba(255, 255, 255, 0.85),rgb(91, 101, 0)),
-    rgba(255, 255, 255, 1) url(/roll-six-win/assets/polygon.chip.webp) center/cover no-repeat;
-    background-size: 70%; 
-  }
-  .center-circle.twentyFifth::before {
-    content: '';
-    opacity: 1;
-    font-family: Noto Serif Display;
-    font-weight: 800;
-    color: rgba(0, 0, 0, 0.95);
-  }
-  .chip:hover .center-circle.twentyFifth::before {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    content: '.25';
-    border: none;
-    background: 
-    radial-gradient(circle at center, rgba(255, 255, 255, 0.85),rgb(91, 101, 0)),
-    rgba(255, 255, 255, 1) url(/roll-six-win/assets/polygon.chip.webp) center/cover no-repeat;
-    background-size: 70%; 
-    font-size: 2rem;
-  }
-
-  .center-circle.fiftieth::before {
-    display: none;
-    content: "";
-    opacity: 1;
-    font-family: Noto Serif Display;
-    font-weight: 800;
-    color: rgba(0, 0, 0, 0.95);
-  }
-  .chip:hover .center-circle.fiftieth::before {
-
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    content: '.5';
-    border: none;
-    background: 
-    radial-gradient(circle at center, rgba(255, 255, 255, 0.85),rgb(91, 101, 0)),
-    rgba(255, 255, 255, 1) url(/roll-six-win/assets/polygon.chip.webp) center/cover no-repeat;
-    background-size: 70%; 
-    font-size: 2rem;
-  }
-  .center-circle::before {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(to top left,rgba(251, 255, 0, 0.2),rgba(255, 255, 255, 0.1) );
-    border-radius: 50%;
-    inset: -2%;
-    content: ''; /* Required for pseudo-elements */
-  }
-  .chip .center-circle.value {
-    position: absolute;
-    display: none;
-  }
-  .red::before, .black::before {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 50px;
-    height: 50px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    border-radius: 50%;
-    content: attr(data-value);
-    transform: translate(-50%, -50%);
-    transition: background 2s ease, transform 2s ease;
-    font-family: monospace;
-    font-weight: 700;
-  }
-  .waiting {
-    transition: background 2s ease, transform 2s ease;
-  }
-  .waiting::before{
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 50px;
-    height: 50px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background: rgba(255, 255, 255, 0.2);
-    border-radius: 50%;
-    content: attr(data-value);
-    font-family: monospace;
-    transform: translate(-50%, -50%);
-  }
-  
-  .red::before {
-    background: linear-gradient(to bottom right, rgba(255, 75, 75, 0.9) 10%, rgba(255, 0, 0, 0.85) 90%);
-    box-shadow: 1px 1px rgba(0, 0, 0, 0.5);
-  }
-  
-  .black::before {
-    background: linear-gradient(to bottom right, rgba(75, 75, 75, 0.99) 10%, rgba(0, 0, 0, 0.99) 90%);
-    box-shadow: 1px 1px rgba(0, 0, 0, 0.5);
-  }
-  
-  
-  .active {
-    display: block !important;
-  }
-
-  
-  
-  
-  .broke {
-    animation: pulse 1.9s infinite linear;
-    animation-fill-mode: forwards;
-  }
-  .logged-in {
-    background: linear-gradient(145deg, #b8ff80, #98e664) !important;
-  }
-  @keyframes increase {
-    0% {
-      color: rgb(255, 255, 0);
-    }
-    25% {
-      text-shadow: 10px 10px 20px rgba(100, 255, 0, .15);
-      color: rgb(100, 255, 0);
-    }
-    50% {
-      text-shadow: 10px 10px 20px rgba(100, 255, 0, .1);
-      color: rgb(0, 255, 0);
-    }
-    75% {
-      text-shadow: 10px 10px 20px rgba(100, 255, 0, .05);
-      color: rgb(100, 255, 0);
-    }
-    100% {
-      color: rgb(255, 255, 0);
-    }
-  }
-  @keyframes decrease {
-    0% {
-      color: rgb(255, 255, 0);
-    }
-    25% {
-      text-shadow: 10px 10px 20px rgba(238, 255, 0, 0.15);
-      color: rgb(255, 100, 0);
-    }
-    50% {
-      text-shadow: 10px 10px 20px rgba(229, 255, 0, 0.1);
-      color: rgb(255, 0, 0);
-    }
-    75% {
-      text-shadow: 10px 10px 20px rgba(234, 255, 0, 0.05);
-      color: rgb(255, 100, 0);
-    }
-    100% {
-      color: rgb(255, 255, 0);
-    }
-  }
-  @keyframes pulse {
-    0% {
-      /* transform: scale(1); */
-      box-shadow: 0 0 0 0 rgba(254, 93, 82, 0.7);
-    }
-    50% {
-      /* transform: scale(1.05); */
-      box-shadow: 0 0 0 10px rgba(255, 184, 184, 0);
-    }
-    100% {
-      /* transform: scale(1); */
-      box-shadow: 0 0 0 0 rgba(0, 0, 0, 0);
-    }
-  }
-  @keyframes pulse-two {
-    0% {
-      /* transform: scale(1); */
-      box-shadow: 0 0 0 0 rgba(82, 254, 82, 0.2);
-    }
-    50% {
-      /* transform: scale(1.05); */
-      box-shadow: 0 0 0 8px rgba(255, 184, 184, 0);
-    }
-    100% {
-      /* transform: scale(1); */
-      box-shadow: 0 0 0 0 rgba(0, 0, 0, 0);
-    }
-  }
-  .pulse-class {
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-    animation: pulse 1s linear;
-    animation-fill-mode: forwards;
-  }
-  .pulse-two-class {
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-    animation: pulse-two 1s linear;
-    animation-fill-mode: forwards;
-  }
-  .fade-in-out {
-      transition: opacity 0.15s ease-in, transform 0.15s ease, font-size 0.15s ease, color .15s ease;
-    }
-  
-    .fade-in-out.hidden2 {
-      opacity: .75;
-      font-size: .93rem !important;
-    }
-    .fade-in-out.increase {
-      color: rgb(255, 255, 0);
-      animation: increase 0.25s linear;
-      animation-fill-mode: forwards;
-    }
-    .fade-in-out.decrease {
-      color: rgb(255, 255, 0);
-      animation: decrease 0.25s linear;
-      animation-fill-mode: forwards;
-    }
-  
-  
-  
-    /* Win display styles */
-    #winsDisplay {
-      margin: 10px 20px; /* Adjusted margin for spacing */
-      padding: 10px;
-      max-width: 100%; /* Full width */
-      height: 60px; /* Adjusted height */
-      display: flex;
-      justify-content: space-around;
-      align-items: center;
-      background-color: #2d53374d;
-      border: none;
-      border-radius: 10%;
-      box-shadow: inset 2px 2px 5px rgba(0, 0, 0, 0.327), 2px 2px 1px 1px rgba(0, 0, 0, 0.37);
-      overflow: hidden; /* Hide overflow if content exceeds height */
-      user-select: none;
-  }
-
-    .win-item {
-      display: flex;
-      align-items: center;
-    }
-  
-    .win-text {
-      margin-right: 5px;
-      font-size: .99rem;
-      outline: none;
-    }
-    @keyframes multiplier-animation {
-      0% {
-        scale: 1;
-        opacity: .74;
-        color: rgb(205, 0, 205) ;
-      } 
-      25% {
-        scale: 1.02;
-        opacity: .75;
-        color: rgb(180, 0, 180) ;
-      }
-      50% {
-        scale: 1;
-        opacity: .74;
-        color: rgb(205, 0, 205);
-      }
-      75% {
-        scale: .98;
-        opacity: .75;
-        color: rgb(225, 0, 225) ;
-      }
-      100% {
-        scale: 1;
-        opacity: .74;
-        color: rgb(205, 0, 205);
-      }
-  
-    }
-    .lights {
-      display: flex;
-      justify-content: flex-start; /* Align lights to the left */
-    }
-  
-    .numbered-board.active {
-      animation: winner .2s infinite;
-    }
-  
-    @keyframes winner {
-      0% {
-        box-shadow:inset 2px 4px 8px rgba(246, 255, 211, .1);
-        border: 1.25px solid white;
-      }
-      25% {
-        box-shadow: inset 2px 8px 16px rgba(252, 255, 155, .1);
-        border: 1.25px solid white;
-      }
-      50% {
-        box-shadow: inset 2px 16px 32px rgba(255, 253, 105, .1);
-        border: 1.25px solid white;
-      }
-      75% {
-        box-shadow: inset 2px 8px 16px rgba(252,255,155, .1);
-        border: 1.25px solid white;
-      }
-      100% {
-        box-shadow: inset 2px 4px 8px rgba(246, 255, 211, .1);
-        border: 1.25px solid white;
-      }
-    }
-    .light-container {
-      position: absolute;
-      top: 5px;
-      left: 5px;
-      width: 100%;
-      display: flex;
-      flex-direction: column-reverse;
-      align-items: flex-start;
-    }
-    .light {
-      margin-bottom: 1px !important;
-      padding: 10px !important; 
-      width: 1px !important;
-      height: 1px !important;
-      display: flex;
-      flex: 1;
-      justify-content: center;
-      align-items: center;
-      background: radial-gradient(circle at center, rgba(38, 53, 40, 0.5) 0%, rgba(38, 53, 40, 0.8) 80%, rgba(38, 53, 40, 1) 100%);
-      border: 1px solid rgb(53, 116, 53);
-      border-radius: 50%;
-      transition: background-color 1s, color 1s; /* Smooth transition */
-      font-family:Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
-      font-size: 14px !important;
-      font-weight: 700 !important;
-      text-shadow: none !important;
-      letter-spacing: -1.5px;
-      line-height: 0 !important;
-      text-align: center;
-      color: rgba(255, 255, 255, 0.4); /* Lighter text color for off state */
-    }
-    .light.active-light {
-      margin-bottom: 4px !important;
-      background: radial-gradient(circle, rgba(151, 255, 151, 0.9) 20%, rgba(151, 255, 151, 0.5) 80%, rgba(255, 255, 255, 0) 100%);
-      color: transparent; /* Transparent text when on */
-      border: 1px solid rgba(0, 0, 0, 0.386);
-
-    }
-    .light.scale {
-      margin-top: 3px !important;
-      margin-bottom: 5px !important;
-    }
-  .placed {
-    transform: translateX(-50%);
-    animation: drop .33s ease-out forwards;
-    scale: .5;
-  }
-    .streaks {
-      margin: 0 5px;
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    }
-    .parity-streaks {
-      background-color:rgba(94, 255, 94, 0.2);
-    }
-    .number-streaks {
-      background-color:rgba(94, 255, 94, 0.2);
-    } 
-
-  .color-streaks {
-    background-color:rgba(94, 255, 94, 0.2);
-  }
-  
-  
-  .chip-0_1 {
-    background:
-      radial-gradient(circle at center, rgba(255, 255, 255, 0.2),rgba(255, 0, 0, 0.8)),
-      rgba(255, 255, 255, 0.5) url(/roll-six-win/assets/chip-texture.webp) center/cover no-repeat;
-  }
-  
-  .chip-0_25 {
-    background: 
-      radial-gradient(circle at center, rgba(255, 255, 255, 0.2), rgba(0, 17, 255, 0.8)),
-      rgba(153, 204, 255, 1) url(/roll-six-win/assets/chip-texture.webp) center/cover no-repeat;
-  }
-  
-  .chip-0_5 {
-    background: 
-    radial-gradient(circle at center, rgba(255, 255, 255, 0.2), rgba(0, 247, 255, 0.8)),
-    rgba(153, 204, 255, 1) url(/roll-six-win/assets/chip-texture.webp) center/cover no-repeat;
-  }
-  
-  .chip-1 {
-    background: 
-    radial-gradient(circle at center, rgba(255, 255, 255, 0.2), rgba(166, 0, 255, 0.8)),
-    rgba(153, 204, 255, 1) url(/roll-six-win/assets/chip-texture.webp) center/cover no-repeat;
-  }
-  
-  
-  
-  .chip-default {
-    background: linear-gradient(45deg, rgba(11, 75, 69, 1), rgba(255, 255, 255, 1));
-  }
-  #history-display {
-    width: 300px;
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
-    align-items: center;
-    background-color: #008f1f;
-    border: 1px solid rgb(0, 255, 89);
-    text-decoration: none;
-    color: black;
-    overflow-x: scroll;
-  }
-  #history-display.hidden {
-    display: none;
-  }
-  #even-board {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 10px 10px 50px 10px;
-    font-family: roboto;
-    font-size: 1.75rem;
-    font-weight: 700;
-    text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5);
-    color: rgb(214, 246, 215);
-  }
-  #even-board::before {
-    content: "EVEN";
-  }
-  #odd-board {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 10px 10px 10px 50px;
-    font-family: roboto;
-    font-size: 1.75rem;
-    font-weight: 700;
-    text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5);
-    color: rgb(214, 246, 215);
-  }
-  #odd-board::before {
-    content: "ODD";
-
-  }
-  #black-board {
-    border-radius: 10px 50px 10px 10px;
-  }
-  #black-board::before {
-    width: 70%;
-    height: 70%;
-    inset: 15%; /* Adjusted for better centering */
-    position: absolute;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background: linear-gradient(to bottom right, rgba(75, 75, 75, 0.99) 10%, rgba(0, 0, 0, 0.99) 90%);
-    border-radius: 10px 50px 10px 10px;
-    box-shadow: inset 1px 1px 5px rgba(0, 0, 0, 0.1);
-    font-size: 2rem;
-    text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5);
-    content: "\20BF";
-  }
-  
-  #red-board {
-    border-radius: 50px 10px 10px 10px;
-  }
-  #red-board::before {
-    position: absolute;
-    width: 70%;
-    height: 70%;
-    inset: 15%; /* Adjusted for better centering */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: linear-gradient(to bottom right, rgba(255, 75, 75, 0.9) 10%, rgba(255, 0, 0, 0.85) 90%);
-    box-shadow: inset 1px 1px 5px rgba(0, 0, 0, 0.1);
-    border-radius: 50px 10px 10px 10px;
-    font-size: 2rem;
-    text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5);
-    content: "\20BF";
-  }
-  
-  @keyframes rolling {
-    0% {
-      background: rgba(255, 255, 0, 0.476);
-    }
-    50% {
-      background: rgba(255, 255, 162, 0.599);
-    }
-    100% {
-      background: rgba(255, 255, 0, 0.476);
-    }
-  }
-  
-  @keyframes blink {
-    0% {
-      background-color: rgb(255, 255, 255);
-    }
-    50% {
-      background-color: rgb(26, 255, 0);
-    }
-    100% {
-      background-color: rgb(255, 255, 255);
-    }
-  }
-
-  .winning-board {
-    box-shadow:  1px 1px 20px gold;
-  }
-
-  .board-control-button {
-    cursor: pointer;
-  }
-  #clear-board-button {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: absolute;
-    bottom: 15px;
-    left: 300px;
-    width: 35px;
-    height: 30px;
-    background-image: url('/roll-six-win/assets/clear-bet.png');
-    background-size: 70%;
-    background-repeat: no-repeat;
-    background-position: center;
-    background-color: rgb(15, 137, 10);
-    box-shadow: inset 1px 1px 5px 3px rgba(0, 0, 0, 0.413);
-    border: 1px solid rgba(0, 0, 0, 0.441);
-  }
-
-  #place-bet-button {
-    position: absolute;
-    right: 839.5px;
-    top: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 45px;
-    height: 45px;
-    border-radius: 50%;
-    background-image: url('/roll-six-win/assets/bet-button1.png');
-    background-size: 100%;
-    background-repeat: no-repeat;
-    background-position: center;
-    background-color: rgba(14, 137, 10, 0);
-    transition: transform 0.1s ease; /* Use transform for rotation */
-    transform: rotate(135deg);
-    animation: ready 1s ease infinite;
-    opacity: 0;
-  }
-  @keyframes ready {
-    0%{
-      scale: 1;
-    }
-    50% {
-      scale: 1.05;
-    }
-    100% {
-      scale: 1;
-    }
-  }
-  
-  #place-bet-button.clicked {
-    transform: rotate(135deg) translateY(-25px) translateX(25px);
-    opacity: 0;
-  }
-  #place-bet-button.hidden {
-    display: none;
-    opacity: 1;
-  }
+}

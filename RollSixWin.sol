@@ -466,7 +466,7 @@ contract RollSixWin is VRFConsumerBaseV2Plus {
                 } else if (consecutiveWins >= 6) {
                     bonus = totalBetAmount * standardBonuses[4] / MAX_BASIS_POINTS;
                 } 
-            } else {
+            } else { // wrong, it will always trigger here @
                 if (consecutiveWins >= 2 && consecutiveWins <= 3) {
                     bonus = totalBetAmount * standardBonuses[0] / MAX_BASIS_POINTS;
                 } else if (consecutiveWins >= 4 && consecutiveWins <= 5) {
