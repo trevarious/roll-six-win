@@ -44,7 +44,7 @@ const initialize = async () => {
     const noRegex = /^n[a-z]*$/i;
     if(yesRegex.test(response.trim()))  {
       try {
-        const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
+        const accounts = window.ethereum.request({ method: 'eth_requestAccounts' })
         userAccount = accounts[0];
         web3 = new Web3(window.ethereum);
         contract = new web3.eth.Contract(contractABI, contractAddress);
@@ -68,6 +68,7 @@ const initialize = async () => {
         updateBetDisplay(totalBetAmount);
         updateColorMapping();
         updateConsecutiveWins();
+        displayWinningNumberHisory();
         board = new Board();
         bets = board.bets;
         board.dealChips();
@@ -169,9 +170,10 @@ const updateBetDisplay = async (totalBetAmount) => {
     }
     let betAmountInMatic = web3.utils.fromWei(totalBetAmount.toString());
     if (currentBalance !== null) {
-      let remainingBalance = currentBalance - betAmountInMatic; 
+      let remainingBalance = currentBalance - betAmountInMatic;
+      console.log(remainingBalance);
       const balanceElement = document.getElementById('balance'); 
-      if (parseFloat(balanceElement.textContent) !== currentBalance) {
+      if (parseFloat(balanceElement.textContent) !== remainingBalance) {
         balanceElement.textContent = remainingBalance.toFixed(2); 
         balanceElement.appendChild(polygonImage);
       }
@@ -209,7 +211,6 @@ const fetchColorMapping = async () => {
         return null;
     }
 }
-
 const updateColorMapping = async () => {
     const colorMapping = await fetchColorMapping();
     if (!colorMapping) {
@@ -269,11 +270,11 @@ const updateBoardMultiplier = (elementclass,multipliedAmount) => {
           amountToLight--;
         }
         if (anotherLight > -1) {
-          light.textContent = `${i < 3 ? '1x' : i < 5 ? '2x' : i < 7 ? '3x' : i < 9 ? '4x' : '5x'}`;
+          // light.textContent = `${i < 3 ? '1x' : i < 5 ? '2x' : i < 7 ? '3x' : i < 9 ? '4x' : '5x'}`;
           anotherLight--;
           if(!light.classList.contains('active-light')){
             light.classList.add('scale');
-            light.style.scale = '1.2';
+            // light.style.scale = '1.2';
           }
         }
         lightContainer.appendChild(light);
@@ -858,10 +859,11 @@ class Board {
         round.textContent = roundNumber;
       }
       let betAmountInMatic = web3.utils.fromWei(totalBetAmount.toString());
+      console.log(betAmountInMatic);
       if (currentBalance !== null) {
         let remainingBalance = currentBalance - betAmountInMatic; 
         const balanceElement = document.getElementById('balance'); 
-        if (parseFloat(balanceElement.textContent) !== currentBalance) {
+        if (parseFloat(balanceElement.textContent) !== remainingBalance) {
           balanceElement.textContent = remainingBalance.toFixed(2); 
           balanceElement.appendChild(polygonImage);
           increaseAnimation();

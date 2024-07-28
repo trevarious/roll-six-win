@@ -676,6 +676,7 @@ canvas {
   background-color: rgba(255, 255, 255, 0.2);
 }
 .stat-item:first-child{
+  flex: 2;
   border-radius: 0 0 0 50px;
 }
 .board-text {
@@ -1213,15 +1214,30 @@ canvas {
   text-align: center;
   color: rgba(255, 255, 255, 0.4); 
 }
+.light:nth-child(3)::before {
+  content: 'x1' !important;
+  color:rgba(254, 254, 254, 0.484) !important; 
+  background: rebeccapurple;
+}
+.light:nth-child(6)::before {
+  content: 'x2' !important;
+  color:rgba(254, 254, 254, 0.451) !important; 
+  background: rebeccapurple;
+}
+.light:nth-child(10)::before {
+  content: 'x3' !important;
+  color:rgba(254, 254, 254, 0.439) !important; 
+  background: rebeccapurple;
+}
 .light.active-light {
   margin-bottom: 4px !important;
-  background: radial-gradient(circle, rgba(151, 255, 151, 0.9) 20%, rgba(151, 255, 151, 0.5) 80%, rgba(255, 255, 255, 0) 100%);
+  background: radial-gradient(circle, rgba(151, 255, 151, 0.9) 20%, rgba(151, 255, 151, 0.1) 80%, rgba(255, 255, 255, 1) 100%);
   color: rgb(255, 255, 255); 
-  border: 1px solid rgba(0, 0, 0, 0.386);
 }
 .light.scale {
   margin-top: 3px !important;
   margin-bottom: 5px !important;
+  background: radial-gradient(circle at center, rgba(129, 148, 84, 0.9) 0%, rgba(38, 89, 47, 0.7) 80%, rgb(0, 255, 34) 100%);
 }
 
 .place-chips {
