@@ -10,7 +10,7 @@ let calculateTotalBetAmount = () => {
 };
 let web3;
 let contract;
-let userAccount;
+let userAccount
 let board;
 let bets;
 let lastRoundsBets = [];
@@ -31,6 +31,7 @@ const totalBetAmount = document.getElementById("totalBetAmount");
 const balance = document.getElementById("balance");
 const round = document.getElementById("round");
 const numberedBoards = document.querySelectorAll(".numbered-board");
+const replayButton = document.getElementById('replay-bet-button');
 
 document.addEventListener('DOMContentLoaded', () => {
   playButton.classList.add("hidden");
@@ -44,10 +45,11 @@ const initialize = async () => {
     const noRegex = /^n[a-z]*$/i;
     if(yesRegex.test(response.trim()))  {
       try {
-        const accounts = window.ethereum.request({ method: 'eth_requestAccounts' })
-        userAccount = accounts[0];
         web3 = new Web3(window.ethereum);
         contract = new web3.eth.Contract(contractABI, contractAddress);
+        const accounts = await window.ethereum.request({method: "eth_requestAccounts"});
+        console.log(`Account one : ${accounts[0]}`);
+        userAccount = accounts[0];
         connectWalletButton.disabled = true;
         const timestamp = new Date().toLocaleString();
         console.log(`Log in successful at ${timestamp}`);
@@ -60,7 +62,7 @@ const initialize = async () => {
           rollIndicator.classList.remove("logged-in"); 
           rollIndicator.textContent = ""; 
         }, 3000);
-        updateAccountDisplay();
+        updateAccountDisplay(userAccount);
         let calculateTotalBetAmount = () => {
           return bets ? bets.reduce((total, bet) => total.add(web3.utils.toBN(bet.amount)), web3.utils.toBN('0')) : '';
         };
@@ -68,7 +70,7 @@ const initialize = async () => {
         updateBetDisplay(totalBetAmount);
         updateColorMapping();
         updateConsecutiveWins();
-        displayWinningNumberHisory();
+        // displayWinningNumberHisory();
         board = new Board();
         bets = board.bets;
         board.dealChips();
@@ -92,13 +94,15 @@ const initialize = async () => {
 connectWalletButton.addEventListener("click", initialize);
 
 const accountAddress = document.getElementById("wallet-address");
-const updateAccountDisplay = async () => {
+const updateAccountDisplay = async (account) => {
+  console.log(`update account display called, value of userAccount: ${userAccount}`);
   try {
-    const isAccountCreated = await contract.methods.getAccountStatus(userAccount).call({ from: userAccount });
+    const isAccountCreated = await contract.methods.getAccountStatus(account).call({ from: userAccount });
+    console.log(`Is account created: ${isAccountCreated}`);
     if(isAccountCreated) {
-      const balanceValue = await contract.methods.getBalance().call({from: userAccount});
+      const balanceValue = await contract.methods.getBalance().call({from: account});
       const balanceInMatic = web3.utils.fromWei(balanceValue);
-      const roundValue = await contract.methods.getCurrentRound().call({from: userAccount});
+      const roundValue = await contract.methods.getCurrentRound().call({from: account});
       depositButton.classList.add("active");
       withdrawButton.classList.add("active");
       createAccountButton.style.display = "none";
@@ -549,6 +553,7 @@ const distributeWinningChips = async (winningNumber) => {
             } else {
               winningChipClone = new Chip(value);
               winningChipClone.element.style.boxShadow = '15px 15px 60px yellow';
+              winningChipClone.element.style.zIndex = '10000000';
               placeChipOnBoard(winningChipClone.element, board);
 }
 }
@@ -565,6 +570,7 @@ const distributeWinningChips = async (winningNumber) => {
                 let value = chip.getAttribute('data-value');
                 winningChipClone = new Chip(value);
                 winningChipClone.element.style.boxShadow = '15px 15px 60px yellow';
+                winningChipClone.element.style.zIndex = '10000000';
                 placeChipOnBoard(winningChipClone.element, bettingBoard[9]);
                 }
               } else {
@@ -572,6 +578,7 @@ const distributeWinningChips = async (winningNumber) => {
                 let value = chip.getAttribute('data-value');
                 winningChipClone = new Chip(value);
                 winningChipClone.element.style.boxShadow = '15px 15px 60px yellow';
+                winningChipClone.element.style.zIndex = '10000000';
                 placeChipOnBoard(winningChipClone.element, bettingBoard[9]);
               }
             })
@@ -590,6 +597,7 @@ const distributeWinningChips = async (winningNumber) => {
               let value = chip.getAttribute('data-value');
               winningChipClone = new Chip(value);
               winningChipClone.element.style.boxShadow = '15px 15px 60px yellow';
+              winningChipClone.element.style.zIndex = '10000000';
               placeChipOnBoard(winningChipClone.element, bettingBoard[8]);
               }
             } else {
@@ -597,6 +605,7 @@ const distributeWinningChips = async (winningNumber) => {
               let value = chip.getAttribute('data-value');
               winningChipClone = new Chip(value);
               winningChipClone.element.style.boxShadow = '15px 15px 60px yellow';
+              winningChipClone.element.style.zIndex = '10000000';
               placeChipOnBoard(winningChipClone.element, bettingBoard[8]);
             }
           })
@@ -614,6 +623,7 @@ const distributeWinningChips = async (winningNumber) => {
               let value = chip.getAttribute('data-value');
               winningChipClone = new Chip(value);
               winningChipClone.element.style.boxShadow = '15px 15px 60px yellow';
+              winningChipClone.element.style.zIndex = '10000000';
               placeChipOnBoard(winningChipClone.element, bettingBoard[0]);
               }
             } else {
@@ -621,6 +631,7 @@ const distributeWinningChips = async (winningNumber) => {
               let value = chip.getAttribute('data-value');
               winningChipClone = new Chip(value);
               winningChipClone.element.style.boxShadow = '15px 15px 60px yellow';
+              winningChipClone.element.style.zIndex = '10000000';
               placeChipOnBoard(winningChipClone.element, bettingBoard[0]);
             }
           })
@@ -635,12 +646,14 @@ const distributeWinningChips = async (winningNumber) => {
               let value = chip.getAttribute('data-value');
               winningChipClone = new Chip(value);
               winningChipClone.element.style.boxShadow = '15px 15px 60px yellow';
+              winningChipClone.element.style.zIndex = '10000000';
               placeChipOnBoard(winningChipClone.element, bettingBoard[1]);
               }
             } else {
               let value = chip.getAttribute('data-value');
               winningChipClone = new Chip(value);
               winningChipClone.element.style.boxShadow = '15px 15px 60px yellow';
+              winningChipClone.element.style.zIndex = '10000000';
               placeChipOnBoard(winningChipClone.element, bettingBoard[1]);
             }
           })
@@ -649,8 +662,6 @@ const distributeWinningChips = async (winningNumber) => {
     board.classList.add('winning-board');
   }
         })
-
-
 }
 const clearChips = () => {
   if(bets.length > 0){
@@ -1037,7 +1048,6 @@ class Chip {
   return document.getElementById(chipContainerMap[this.value] || 'chips');
   }
 }
-const replayButton = document.getElementById('replay-bet-button');
 const handleReplayBetButton = () => {
   if(lastRoundsBets.length == 0 || bets.length > 0)
     return;
