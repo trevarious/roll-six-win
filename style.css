@@ -75,10 +75,10 @@ canvas {
 }
 #loseMessage {
   position: absolute;
-  top: 50%;
-  left: 50%;
+  top: 6%;
+  left: 27%;
   transform: translate(-50%, -50%);
-  transition: font-size 3s, opacity 3s;
+  transition: font-size .3s, opacity .3s;
   opacity: 0;
   font-size: 1.5rem;
   font-weight: bold;
@@ -91,10 +91,10 @@ canvas {
 }
 #winMessage {
   position: absolute;
-  top: 50%;
-  left: 50%;
+  top: 6%;
+  left: 27%;
   transform: translate(-50%, -50%);
-  transition: font-size 3s, opacity 3s;
+  transition: font-size .3s, opacity .3s;
   opacity: 0;
   font-size: 1.5rem;
   font-weight: bold;
@@ -107,10 +107,10 @@ canvas {
 }
 #breakEvenMessage {
   position: absolute;
-  top: 50%;
-  left: 50%;
+  top: 6%;
+  left: 27%;
   transform: translate(-50%, -50%);
-  transition: font-size 3s, opacity 3s;
+  transition: font-size 3s, opacity .3s;
   font-size: 1.5rem;
   font-weight: bold;
   color: rgb(255, 255, 255);
@@ -585,6 +585,7 @@ canvas {
   transition: top 1s ease, right 1s ease, transform .6s ease, opacity .8s ease; 
   opacity: 0;
   pointer-events: none;
+  z-index: 9999999999999;
 }
 .dice-canvas.active {
   top: 0 !important;
@@ -761,7 +762,7 @@ canvas {
   cursor: pointer; 
   transition: transform 0.2s ease-in-out;
   scale: .8;
-  z-index: 100000000;
+  z-index: 10000000;
 }
 .chip:hover {
   transform: scale(1.05);
@@ -1220,25 +1221,83 @@ canvas {
   color:rgba(254, 254, 254, 0.484) !important; 
   background: rebeccapurple;
 }
+.light:nth-child(3){
+  scale: 1.05;
+}
 .light:nth-child(6)::before {
   content: 'x2' !important;
   color:rgba(254, 254, 254, 0.451) !important; 
   background: rebeccapurple;
 }
-.light:nth-child(10)::before {
+.light:nth-child(6){
+  scale: 1.1;
+}
+.light:nth-child(9)::before {
   content: 'x3' !important;
   color:rgba(254, 254, 254, 0.439) !important; 
   background: rebeccapurple;
 }
+.light:nth-child(9){
+  scale: 1.2;
+}
+.light:nth-child(10)::before {
+  content: 'x4' !important;
+  color:rgba(254, 254, 254, 0.439) !important; 
+
+}
+.light:nth-child(10){
+  margin-bottom: 10px !important;
+  scale: 1.45;
+
+}
+.light.active-light:nth-child(10){
+  margin-bottom: 15px !important;
+  background: radial-gradient(circle, rgba(109, 136, 115, 0.499) 20%, rgba(179, 255, 0, 0.744) 80%, rgb(234, 0, 255) 100%);
+}
+.light.active-light:nth-child(10)::before {
+  color:rgb(255, 239, 116) !important; 
+  font-size: .8rem;
+
+}
+.light.active-light:nth-child(9){
+  background: radial-gradient(circle, rgba(109, 136, 115, 0.499) 20%, rgba(105, 239, 105, 0.7) 80%, rgb(234, 0, 255) 100%);
+  margin-bottom: 5px !important;
+}
+.light.active-light:nth-child(6){
+  background: radial-gradient(circle, rgba(109, 136, 115, 0.499) 20%, rgba(105, 239, 105, 0.7) 80%, rgb(234, 0, 255) 100%);
+  margin-top: 2.5px;
+  margin-bottom: 2.5px !important;
+}
+.light.active-light:nth-child(3){
+  background: radial-gradient(circle, rgba(109, 136, 115, 0.499) 20%, rgba(105, 239, 105, 0.7) 80%, rgb(234, 0, 255) 100%);
+  margin-top: 1.25px;
+  margin-bottom: 1.25px !important;
+}
+.light.active-light:nth-child(9)::before {
+  color:rgb(255, 255, 255) !important; 
+  font-size: .8rem;
+
+}
+.light.active-light:nth-child(6)::before {
+  color:rgb(255, 255, 255) !important; 
+  font-size: .8rem;
+
+}
+.light.active-light:nth-child(3)::before {
+  color:rgb(255, 255, 255) !important; 
+  font-size: .8rem;
+
+}
 .light.active-light {
-  margin-bottom: 4px !important;
+  margin-bottom: 1.5px !important;
   background: radial-gradient(circle, rgba(151, 255, 151, 0.9) 20%, rgba(151, 255, 151, 0.1) 80%, rgba(255, 255, 255, 1) 100%);
-  color: rgb(255, 255, 255); 
+  color: rgb(255, 255, 255) !important; 
 }
 .light.scale {
   margin-top: 3px !important;
   margin-bottom: 5px !important;
-  background: radial-gradient(circle at center, rgba(129, 148, 84, 0.9) 0%, rgba(38, 89, 47, 0.7) 80%, rgb(0, 255, 34) 100%);
+  box-shadow: inset 5px 5px 10px rgba(0, 255, 34, 0.2);
+  border: 1px solid rgba(178, 255, 122, 0.3);
 }
 
 .place-chips {

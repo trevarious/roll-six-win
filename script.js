@@ -58,6 +58,7 @@ const initialize = async () => {
         rollIndicator.classList.add("logged-in");
         rollIndicator.textContent = "Welcome";
         replayButton.classList.add('bets-on');
+        lossAnimation(0);
         setTimeout(() => { 
           rollIndicator.classList.remove("logged-in"); 
           rollIndicator.textContent = ""; 
