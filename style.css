@@ -1552,3 +1552,98 @@ border-radius: 50%;
     scale: 1;
   }
 }
+
+
+
+/* Media query for larger screens */
+@media (max-width: 600px) {
+  header {
+    height: 10vh;
+    margin-bottom: 0;
+  }
+  #dice-machine-container {
+    height: 10vh;
+    margin-bottom: 0;
+  }
+  .board-container {
+    width: 300px;
+    height: auto;
+    margin: 5px;
+    left: 0;
+    padding: 5px;
+  }
+  #chips {
+    height: 20vh;
+    margin: 0;
+    width: 100%;
+  }
+  .betting-board {
+    margin:5px;
+    padding: 1px;
+    width: 45px;
+    height: 250px;
+    font-size: .5rem;
+  }
+  #even-board {
+    font-size: .75rem;
+  }
+  #odd-board {
+    font-size: .75rem;
+  }
+  #black-board::before {
+    width: 50%;
+    height: 50%;
+    inset: 35%;
+    font-size: 1rem;
+  }
+  #red-board::before {
+    width: 50%;
+    height: 50%;
+    inset: 35%;
+    font-size: 1rem;
+  }
+
+  .red::before, .black::before {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 25px;
+    height: 25px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 50%;
+    content: attr(data-value);
+    transform: translate(-50%, -50%);
+    transition: background 2s ease, transform 2s ease;
+    font-family: monospace;
+    font-weight: 700;
+  }
+  .waiting {
+    transition: background 2s ease, transform 2s ease;
+  }
+  .waiting::before{
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 50px;
+    height: 50px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    content: attr(data-value);
+    font-family: monospace;
+    transform: translate(-50%, -50%);
+  }
+  .red::before {
+    background: linear-gradient(to bottom right, rgba(255, 75, 75, 0.9) 10%, rgba(255, 0, 0, 0.85) 90%);
+    box-shadow: 1px 1px rgba(0, 0, 0, 0.5);
+  }
+  
+  .black::before {
+    background: linear-gradient(to bottom right, rgba(75, 75, 75, 0.99) 10%, rgba(0, 0, 0, 0.99) 90%);
+    box-shadow: 1px 1px rgba(0, 0, 0, 0.5);
+  }
+}
