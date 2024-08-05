@@ -269,26 +269,26 @@ const updateBoardMultiplier = (elementclass,multipliedAmount) => {
       for(let i = 0; i < 10; i++) {
         const light = document.createElement('div');
         light.classList.add('light');
-        if(amountToLight > 0) { // 0
+        if(amountToLight > 0) { 
           light.classList.add('active-light');
           amountToLight--;
         }
         if (anotherLight > -1) {
-          // light.textContent = `${i < 3 ? '1x' : i < 5 ? '2x' : i < 7 ? '3x' : i < 9 ? '4x' : '5x'}`;
           anotherLight--;
           if(!light.classList.contains('active-light')){
             light.classList.add('scale');
-            // light.style.scale = '1.2';
           }
         }
         lightContainer.appendChild(light);
       }
       if(element.id == 'red-board') {
         lightContainer.style.alignItems = 'flex-end';
+        if(window.innerWidth > 600)
         lightContainer.style.left = '-5px';
       }
       if(element.id == 'odd-board') {
         lightContainer.style.alignItems = 'flex-end';
+        if(window.innerWidth > 600)
         lightContainer.style.left = '-5px';
       }
       element.appendChild(lightContainer);
