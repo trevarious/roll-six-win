@@ -1555,6 +1555,10 @@ border-radius: 50%;
 
 /* Media query for larger screens */
 @media (max-width: 600px) {
+  * {
+    margin:  0;
+    padding: 0;
+  }
   header {
     height: 10vh;
     margin-bottom: 0;
@@ -1609,12 +1613,12 @@ border-radius: 50%;
     border-radius: 0 0 0 50px;
   }
   .board-container {
-    width: 100%;
+    width: 100vw;
     height: auto;
-    margin: 5px;
+    margin: 5;
     margin-top: 30px;
     left: 0;
-    padding: 5px;
+    padding: 0;
   }
   #chips {
     height: 20vh;
@@ -1839,4 +1843,12 @@ border-radius: 50%;
   .betting-board {
     width: 50px;
   }
+  
+}
+/* Media query for larger screens */
+@media (max-width: 260px) {
+  .betting-board {
+    width: 36px;
+  }
+  
 }
