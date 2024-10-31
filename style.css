@@ -300,14 +300,14 @@ canvas {
 }
 
 #clear-board-button {
-  background-image: url('/assets/clear-bet.png');
+  background-image: url('/roll-six-win/assets/clear-bet.png');
   background-size: 70%;
   background-repeat: no-repeat;
   background-position: center;
 }
 
 #replay-bet-button {
-  background-image: url('/assets/replay-button.png');
+  background-image: url('/roll-six-win/assets/replay-button.png');
   background-size: 90%;
   background-repeat: no-repeat;
   background-position: center;
@@ -512,7 +512,7 @@ canvas {
   width: 45px;
   height: 45px;
   border-radius: 50%;
-  background-image: url('/assets/bet-button1.png');
+  background-image: url('/roll-six-win/assets/bet-button1.png');
   background-size: 100%;
   background-repeat: no-repeat;
   background-position: center;
@@ -792,7 +792,7 @@ canvas {
   flex-wrap: wrap;
   background:
     linear-gradient(rgba(0, 77, 0, 0.5), rgba(0, 77, 0, 0.5)),
-    green url(/assets/betting-board.jpg) center/cover no-repeat;
+    green url(/roll-six-win/assets/betting-board.jpg) center/cover no-repeat;
   border: 5px solid rgba(0, 0, 0, 0.65);
   box-shadow: inset 5px 5px 5px rgba(5, 43, 12, 0.5);
   user-select: none;
@@ -841,7 +841,7 @@ canvas {
   align-items: center;
   background:
     linear-gradient(rgba(0, 77, 0, 0.), rgba(0, 77, 0, 0.)),
-    green url(/assets/chip-texture.jpg) center/cover no-repeat;
+    green url(/roll-six-win/assets/chip-texture.jpg) center/cover no-repeat;
   background-color: #0b4b45;
   border: 6px solid rgba(255, 255, 255, 1);
   border-radius: 50%;
@@ -1126,7 +1126,7 @@ canvas {
   align-items: center;
   background:
     radial-gradient(circle at center, rgba(255, 255, 255, 0.3), rgb(91, 101, 0)),
-    rgba(255, 255, 255, 1) url(/assets/polygon.chip.webp) center/cover no-repeat;
+    rgba(255, 255, 255, 1) url(/roll-six-win/assets/polygon.chip.webp) center/cover no-repeat;
   background-size: 70%;
   border: 4px solid rgba(125, 0, 183, 0.356);
   border-radius: 50%;
@@ -1155,7 +1155,7 @@ canvas {
   border: none;
   background:
     radial-gradient(circle at center, rgba(255, 255, 255, 0.85), rgb(91, 101, 0)),
-    rgba(255, 255, 255, 1) url(/assets/polygon.chip.webp) center/cover no-repeat;
+    rgba(255, 255, 255, 1) url(/roll-six-win/assets/polygon.chip.webp) center/cover no-repeat;
   background-size: 70%;
 }
 
@@ -1177,7 +1177,7 @@ canvas {
   border: none;
   background:
     radial-gradient(circle at center, rgba(255, 255, 255, 0.85), rgb(91, 101, 0)),
-    rgba(255, 255, 255, 1) url(/assets/polygon.chip.webp) center/cover no-repeat;
+    rgba(255, 255, 255, 1) url(/roll-six-win/assets/polygon.chip.webp) center/cover no-repeat;
   background-size: 70%;
 }
 
@@ -1197,7 +1197,7 @@ canvas {
   border: none;
   background:
     radial-gradient(circle at center, rgba(255, 255, 255, 0.85), rgb(91, 101, 0)),
-    rgba(255, 255, 255, 1) url(/assets/polygon.chip.webp) center/cover no-repeat;
+    rgba(255, 255, 255, 1) url(/roll-six-win/assets/polygon.chip.webp) center/cover no-repeat;
   background-size: 70%;
   font-size: 2rem;
 }
@@ -1219,7 +1219,7 @@ canvas {
   border: none;
   background:
     radial-gradient(circle at center, rgba(255, 255, 255, 0.85), rgb(91, 101, 0)),
-    rgba(255, 255, 255, 1) url(/assets/polygon.chip.webp) center/cover no-repeat;
+    rgba(255, 255, 255, 1) url(/roll-six-win/assets/polygon.chip.webp) center/cover no-repeat;
   background-size: 70%;
   font-size: 2rem;
 }
@@ -1507,25 +1507,25 @@ canvas {
 .chip-0_1 {
   background:
     radial-gradient(circle at center, rgba(255, 255, 255, 0.2), rgba(255, 0, 0, 0.8)),
-    rgba(255, 255, 255, 1) url(/assets/chip-texture.jpg) center/cover no-repeat;
+    rgba(255, 255, 255, 1) url(/roll-six-win/assets/chip-texture.jpg) center/cover no-repeat;
 }
 
 .chip-0_25 {
   background:
     radial-gradient(circle at center, rgba(255, 255, 255, 0.2), rgba(0, 17, 255, 0.8)),
-    rgba(153, 204, 255, 1) url(/assets/chip-texture.jpg) center/cover no-repeat;
+    rgba(153, 204, 255, 1) url(/roll-six-win/assets/chip-texture.jpg) center/cover no-repeat;
 }
 
 .chip-0_5 {
   background:
     radial-gradient(circle at center, rgba(255, 255, 255, 0.2), rgba(0, 247, 255, 0.8)),
-    rgba(153, 204, 255, 1) url(assets/chip-texture.jpg) center/cover no-repeat;
+    rgba(153, 204, 255, 1) url(/roll-six-win/assets/chip-texture.jpg) center/cover no-repeat;
 }
 
 .chip-1 {
   background:
     radial-gradient(circle at center, rgba(255, 255, 255, 0.2), rgba(166, 0, 255, 0.8)),
-    rgba(153, 204, 255, 1) url(assets/chip-texture.jpg) center/cover no-repeat;
+    rgba(153, 204, 255, 1) url(/roll-six-win/assets/chip-texture.jpg) center/cover no-repeat;
 }
 
 .chip-default {

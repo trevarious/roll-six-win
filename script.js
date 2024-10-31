@@ -15,7 +15,7 @@ let board;
 let bets;
 let lastRoundsBets = [];
 let polygonImage = document.createElement('img');
-polygonImage.src = '/assets/polygon.chip.webp';
+polygonImage.src = '/roll-six-win/assets/polygon.chip.webp';
 polygonImage.width = 18;
 polygonImage.height = 18;
 polygonImage.setAttribute('draggable', false);
