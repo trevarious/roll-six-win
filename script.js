@@ -323,7 +323,7 @@ const withdraw = async () => {
     const amount = prompt("Please enter an amount in MATIC");
     if (amount && !isNaN(amount) && parseFloat(amount) > 0) {
       const amountInWei = web3.utils.toWei(amount, "ether");
-      const receipt = await contract.methods.eject().send({ from: userAccount });
+      const receipt = await contract.methods.withdraw(amount).send({ from: userAccount });
       console.log(`Withdraw complete for : ${amount} MATIC ` + receipt);
     } else {
       console.log(`Please enter a valid amount. Amount entered: ${amount}`);
@@ -530,6 +530,7 @@ const updateStats = async () => {
     console.log("error updating stats " + error);
   }
 };
+
 const distributeWinningChips = async (winningNumber) => {
   const consecutiveWins = await fetchConsecutiveWins();
   let multipliedAmountForNumber = consecutiveWins[0] == 3 ? 0.1 : consecutiveWins[0] == 4 || consecutiveWins[0] == 5 ? 0.5 : consecutiveWins[0] >= 6 ? 1 : '';

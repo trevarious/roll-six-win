@@ -1,73 +1,75 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Roll Six Win</title>
-    <link rel="stylesheet" href="style.css">
-    <style>
-      @import url('https://fonts.googleapis.com/css2?family=PT+Serif:ital,wght@0,400;0,700;1,400;1,700&display=swap');
-      </style>      
-          <style>
-            @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+Display:ital,wght@0,100..900;1,100..900&display=swap');
-            </style>
-  </head>
-  <body>
-    <div id="overlay"></div>
-    <div id="lossParticles" class="hidden"></div>
-    <div id="breakEven" class="hidden"></div>
-    <h1 id="loseMessage"></h1>
-    <h1 id="winMessage"></h1>
-    <h1 id="breakEvenMessage"></h1>
-    <header>
-      <nav>
-        <div id="account-container">
-          <p id="account" class="board-text">Account</p>
-          <div id="wallet-status-container">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Roll Six Win</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=PT+Serif:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+  </style>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+Display:ital,wght@0,100..900;1,100..900&display=swap');
+  </style>
+</head>
+
+<body>
+  <div id="overlay"></div>
+  <div id="lossParticles" class="hidden"></div>
+  <div id="breakEven" class="hidden"></div>
+  <h1 id="loseMessage"></h1>
+  <h1 id="winMessage"></h1>
+  <h1 id="breakEvenMessage"></h1>
+  <header>
+    <nav>
+      <div id="account-container">
+        <p id="account" class="board-text">Account</p>
+        <div id="wallet-status-container">
           <div id="log-status-indicator"></div>
           <div id="wallet-address">Disconnected</div>
-          </div>
         </div>
+      </div>
       <button class="nav-button" id="account-button" disabled>Create Account</button>
       <button class="nav-button" id="connect-wallet-button">Connect Wallet</button>
-      </nav>
-      <div class="history"></div>
-    </header>
-    <div id="dice-machine-container">
-      <div id="winningNumber" >
-        <p class="board-text" id="roll-indicator"></p>
-        <div class="carousel-container">
-          <div class="carousel">
-            <div class="carousel-number"></div>
-            <div class="carousel-number">1</div>
-            <div class="carousel-number">2</div>
-            <div class="carousel-number">3</div>
-            <div class="carousel-number">4</div>
-            <div class="carousel-number">5</div>
-            <div class="carousel-number">6</div>
-          </div>
+    </nav>
+    <div class="history"></div>
+  </header>
+  <div id="dice-machine-container">
+    <div id="winningNumber">
+      <p class="board-text" id="roll-indicator"></p>
+      <div class="carousel-container">
+        <div class="carousel">
+          <div class="carousel-number"></div>
+          <div class="carousel-number">1</div>
+          <div class="carousel-number">2</div>
+          <div class="carousel-number">3</div>
+          <div class="carousel-number">4</div>
+          <div class="carousel-number">5</div>
+          <div class="carousel-number">6</div>
         </div>
+      </div>
     </div>
   </div>
   <a class="board-control-button" id="place-bet-button"></a>
-    <div id="stats-container">
-      <div class="stat-item">
-        <p class="board-text">BALANCE-</p>
-        <p class="board-value fade-in-out" id="balance"></p>
-      </div>
-      <div id="bet-item" class="stat-item">
-        <p class="board-text">BET-</p>
-        <div class="board-value fade-in-out" id="totalBetAmount"></div>
-      </div>
-      <div id='round-item' class="stat-item">
-        <p class="board-text">ROUND-</p>
-        <p class="board-value" id="round"></p>
-      </div>
-      <div id='button-item' class=" stat-item">
-        <button class="money-buttons" id="deposit-button">Deposit</button>
-        <button class="money-buttons" id="withdraw-button">Withdraw</button>
-      </div>
+  <div id="stats-container">
+    <div class="stat-item">
+      <p class="board-text">BALANCE-</p>
+      <p class="board-value fade-in-out" id="balance"></p>
     </div>
+    <div id="bet-item" class="stat-item">
+      <p class="board-text">BET-</p>
+      <div class="board-value fade-in-out" id="totalBetAmount"></div>
+    </div>
+    <div id='round-item' class="stat-item">
+      <p class="board-text">ROUND-</p>
+      <p class="board-value" id="round"></p>
+    </div>
+    <div id='button-item' class=" stat-item">
+      <button class="money-buttons" id="deposit-button">Deposit</button>
+      <button class="money-buttons" id="withdraw-button">Withdraw</button>
+    </div>
+  </div>
   <div class="board-container">
     <div id="even-board" class="betting-board parity-streaks" data-value="8"></div>
     <div id="odd-board" class="betting-board parity-streaks" data-value="7"></div>
@@ -82,15 +84,27 @@
   </div>
   <div id="chips" class="chips-container">
     <div id="chip0_1" class="chip-stack"></div>
-    <div id="chip0_25" class="chip-stack" ></div>
+    <div id="chip0_25" class="chip-stack"></div>
     <div id="chip0_5" class="chip-stack"></div>
     <div id="chip1_0" class="chip-stack"></div>
-    <a class="board-function-button" id="clear-board-button"><div class="bet-instructions" id="clear-board-instructions">clear board</div></a>
-    <a class="board-function-button" id="replay-bet-button"><div class="bet-instructions" id="replay-bet-instructions">replay last bet</div></a>
-    <div class="board-function-button place-chips" id="black-bet-button"><div class="bet-instructions" id="black-bet-instructions">place chip here</div></div>
-    <div class="board-function-button place-chips" id="red-bet-button"><div class="bet-instructions" id="red-bet-instructions">place chip here</div></div>
-    <div class="board-function-button place-chips" id="even-bet-button"><div class="bet-instructions" id="even-bet-instructions">place chip here</div></div>
-    <div class="board-function-button place-chips" id="odd-bet-button"><div class="bet-instructions" id="odd-bet-instructions">place chip here</div></div>
+    <a class="board-function-button" id="clear-board-button">
+      <div class="bet-instructions" id="clear-board-instructions">clear board</div>
+    </a>
+    <a class="board-function-button" id="replay-bet-button">
+      <div class="bet-instructions" id="replay-bet-instructions">replay last bet</div>
+    </a>
+    <div class="board-function-button place-chips" id="black-bet-button">
+      <div class="bet-instructions" id="black-bet-instructions">place chip here</div>
+    </div>
+    <div class="board-function-button place-chips" id="red-bet-button">
+      <div class="bet-instructions" id="red-bet-instructions">place chip here</div>
+    </div>
+    <div class="board-function-button place-chips" id="even-bet-button">
+      <div class="bet-instructions" id="even-bet-instructions">place chip here</div>
+    </div>
+    <div class="board-function-button place-chips" id="odd-bet-button">
+      <div class="bet-instructions" id="odd-bet-instructions">place chip here</div>
+    </div>
   </div>
   <ul id="history-display" class="hidden"></ul>
   <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
@@ -100,5 +114,6 @@
   <script src="https://cdn.jsdelivr.net/npm/cannon@0.6.2/build/cannon.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/loaders/GLTFLoader.js"></script>
   <script type="module" src="script.js"></script>
-  </body>
+</body>
+
 </html>
