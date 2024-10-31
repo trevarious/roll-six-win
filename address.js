@@ -1,1 +1,1 @@
-export const contractAddress = '0x4Ca2dE0D7304a626DcA13347aa6Ee37473C69dc6';
+export const contractAddress = '0x5fce8dB2DdcBdF8c39Fa0de45331c4Efe32Ca93D';
